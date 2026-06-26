@@ -95,4 +95,4 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned skills, Obsidian compatibilit
 
 ## License
 
-TBD — add before public release if publishing beyond private use.
+MIT — see [LICENSE](LICENSE).
