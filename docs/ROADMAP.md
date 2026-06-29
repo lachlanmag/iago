@@ -14,6 +14,7 @@ Future work and known gaps for the job-search Cursor workflow. Nothing here is r
 
 | Skill | Purpose |
 |-------|---------|
+| `job-search-pipeline-review` | Triage open pipeline, re-verify listings, rank and recommend shortlist/apply priorities |
 | `update-application` | Structured prompts to mark applied, rejected, interview stages |
 | `company-research` | Pre-interview brief from company site + JD |
 | `interview-prep` | Talking points from JD + local resume |
