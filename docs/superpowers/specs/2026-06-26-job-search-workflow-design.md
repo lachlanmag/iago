@@ -27,7 +27,7 @@ No personal data, tracker history, or resume content is committed to git.
 
 ### Resume tooling (informational only)
 
-Job sourcing and application tracking are independent of resume tooling. The maintainer optionally uses a private [Resume-Matcher](https://github.com/lachlanmag/Resume-Matcher) fork after shortlisting. That integration is not part of this repo and not required to use the workflow.
+Job sourcing and application tracking are independent of resume tooling. The maintainer optionally uses a public [Resume-Matcher](https://github.com/lachlanmag/Resume-Matcher) fork after shortlisting. That integration is not part of this repo and not required to use the workflow.
 
 ## Architecture
 
