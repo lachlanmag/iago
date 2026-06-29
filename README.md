@@ -2,7 +2,7 @@
 
 A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
 
-**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking.
+**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking, pipeline triage and prioritization.
 
 **Out of scope:** resume tailoring, cover letters, PDF export (use any external tools you prefer after shortlisting).
 
@@ -53,7 +53,7 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 | `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports |
 | `logs/` | CLI run logs |
 
-Nothing under `data/` is committed. Run `git status` after a daily search to confirm.
+Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
 
 ## Running a daily search
 

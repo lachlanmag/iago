@@ -8,7 +8,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXAMPLES="$REPO_ROOT/examples"
 DATA="$REPO_ROOT/data"
 
-mkdir -p "$DATA/daily-runs" "$DATA/logs"
+mkdir -p "$DATA/daily-runs" "$DATA/pipeline-reviews" "$DATA/logs"
 
 copy_if_missing() {
   local src="$1"
