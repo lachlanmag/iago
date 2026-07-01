@@ -24,6 +24,7 @@ description: >-
 | `data/applications.yaml` | Applied role row (`company_research`, `jd_path`, notes) |
 | `data/config.yaml` | `profile.resume_path`, `profile.output_language` |
 | `profile.resume_path` in config | Master resume for STAR stories |
+| `data/jds/*.md` | Full JD cached on shortlist (`jd_path` on row) |
 | `data/company-research/*.md` | Optional brief if `company_research` set on row |
 | [prompt.md](prompt.md) | **Mandatory prep prompt** (apply verbatim) |
 
@@ -34,21 +35,21 @@ Repo root is the Cursor workspace.
 | Source | Required |
 |--------|----------|
 | Tracker row (`id` or company + title) | Yes |
-| JD (`jd_path`, saved artifact, or re-fetch canonical `url`) | Yes |
+| JD (`jd_path` on row, or re-fetch canonical `url`) | Yes |
 | Master resume at `profile.resume_path` | Yes |
 | `company_research` artifact | Use when present |
 
 For automatic runs, the row must be `applied` (with `applied: YYYY-MM-DD`) after the tracker write.
 
-Skip if `interview_prep` on the row points to an artifact dated today for the same role unless user asks for a refresh.
+Skip if `interview_prep` on the row points to an artifact dated today for this tracker row unless user asks for a refresh.
 
 ## Workflow
 
 ### 1. Load context
 
 - Read tracker row, config, and master resume.
-- Load JD from `jd_path`, else company-research artifact's embedded JD context, else re-fetch listing `url`.
-- If `company_research` path is set, read that brief for company/role context.
+- Load JD from `jd_path` on the row (set by `company-research` on shortlist). If missing, re-fetch listing `url`.
+- If `company_research` path is set, read that brief for company/role context (not a substitute for the full JD).
 
 ### 2. Run the prep prompt
 
@@ -65,15 +66,15 @@ Use resume content for story mining only. Do not invent achievements.
 
 Write:
 
-`data/interview-prep/YYYY-MM-DD-{company-slug}.md`
+`data/interview-prep/YYYY-MM-DD-{company-slug}-{title-slug}.md`
 
-Same-day duplicate: append `-2`, `-3`, etc.
+**Slugs:** same rules as `company-research` (`{company-slug}-{title-slug}`). Same day + same company + same title: append `-2`, `-3`, etc.
 
 ### 4. Update tracker
 
 On the application row, set:
 
-- `interview_prep: data/interview-prep/YYYY-MM-DD-{company-slug}.md`
+- `interview_prep: data/interview-prep/YYYY-MM-DD-{company-slug}-{title-slug}.md`
 
 Do not change `status` unless user explicitly requested `interview`.
 
@@ -91,7 +92,7 @@ In chat:
 - STAR stories must map to real resume bullets; flag weak evidence.
 - Answers should be speakable (short paragraphs, not essay tone).
 - Include 5–8 likely questions for PM/PO/BA screens and one deeper product sense question.
-- No em dashes in generated text.
+- No em dash characters in generated text.
 - Personal artifacts stay under gitignored `data/`.
 
 ## Manual commands
@@ -100,7 +101,7 @@ In chat:
 
 > Interview prep for my application at [Company]
 
-> Refresh interview prep for [Company] — I have an interview next week
+> Refresh interview prep for [Company]. I have an interview next week
 
 ## Out of scope
 

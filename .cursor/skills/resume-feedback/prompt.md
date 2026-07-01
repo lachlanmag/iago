@@ -111,7 +111,7 @@ Guidelines:
 - Prefer outcomes and metrics over responsibilities.
 - Flag inflated or unsupported claims, especially from aggressive JD tailoring.
 - Do not recommend adding keywords without evidence; mark as "verify with candidate."
-- Do not use em dash ("—") anywhere in the output.
+- Do not use an em dash character anywhere in the output.
 
 Return JSON only with this exact shape:
 {

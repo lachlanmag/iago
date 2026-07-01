@@ -1,13 +1,13 @@
 # Application tracker
 # Status: discovered | shortlisted | applied | interview | rejected | withdrawn | offer | closed
 # industry: label from config.yaml industry_labels
-# resume_fit: strong | good | stretch | weak — separate from industry ★/⚠ flags
-# resume_fit_note: one line — why it aligns (or doesn't) with your resume
+# resume_fit: strong | good | stretch | weak: separate from industry ★/⚠ flags
+# resume_fit_note: one line: why it aligns (or doesn't) with your resume
 #
 # channel (optional, set when applied): direct | company_site | seek | linkedin | recruiter | referral
 # recruiter_id: optional link to data/recruiters.yaml id when placed via recruiter
-# resume_status (optional): none | draft | ready — materials prepared but not yet submitted
-# jd_path (optional): local path to saved job description markdown (not in repo)
+# resume_status (optional): none | draft | ready: materials prepared but not yet submitted
+# jd_path (optional): full JD markdown; set automatically by company-research to data/jds/ on shortlist
 # company_research (optional): path to role brief artifact after shortlist (set by company-research skill)
 # interview_prep (optional): path to prep artifact after apply (set by interview-prep skill)
 
@@ -27,8 +27,8 @@ applications:
   #   status: shortlisted
   #   discovered: 2026-06-26
   #   applied: null
-  #   jd_path: /path/to/saved-jds/acme-pm.md
+  #   jd_path: data/jds/2026-06-26-acme-corp-product-manager.md
   #   resume_status: draft
-  #   company_research: data/company-research/2026-06-26-acme-corp.md
+  #   company_research: data/company-research/2026-06-26-acme-corp-product-manager.md
   #   interview_prep: null
-  #   notes: "Example only — remove before first real run"
+  #   notes: "Example only: remove before first real run"

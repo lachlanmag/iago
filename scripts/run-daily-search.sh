@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local daily job search — runs Cursor Agent CLI against this repo (no cloud).
+# Local daily job search: runs Cursor Agent CLI against this repo (no cloud).
 # Prerequisites: cursor agent login (once), Cursor installed, network for job search.
 
 set -euo pipefail
@@ -10,7 +10,7 @@ LOG_DIR="$DATA_DIR/logs"
 mkdir -p "$LOG_DIR" "$DATA_DIR/daily-runs"
 
 if [[ ! -f "$DATA_DIR/config.yaml" ]]; then
-  echo "Missing data/config.yaml — run: bash scripts/init-data.sh" >&2
+  echo "Missing data/config.yaml: run: bash scripts/init-data.sh" >&2
   exit 1
 fi
 
@@ -49,19 +49,19 @@ PROMPT="$(cat <<EOF
 Read and follow the job-search-daily skill at .cursor/skills/job-search-daily/SKILL.md in this workspace.
 
 Run date (${JOB_SEARCH_TZ}): ${RUN_DATE}
-Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks — not the system UTC date.
+Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks: not the system UTC date.
 
 Run the full daily workflow:
 1. Load data/config.yaml, data/applications.yaml, data/seen-jobs.yaml, and profile.resume_path from config
 2. Search all sources in config search_sources.order (skip excluded_sources)
-3. For EVERY candidate during search: apply listing_freshness at intake — skip expired roles immediately
-4. Dedup every intake-passing candidate per config deduplication rules — canonical URL only
+3. For EVERY candidate during search: apply listing_freshness at intake: skip expired roles immediately
+4. Dedup every intake-passing candidate per config deduplication rules: canonical URL only
 5. Score and tier intake-passing candidates (industry ★/⚠, resume_fit ✓/~)
 6. Run mandatory QA gate (config qa_gate) BEFORE any tracker write
 7. Write data/daily-runs/${RUN_DATE}.md (include Skipped expired, Closing soon, QA gate, Deduped sections)
 8. Append ONLY QA-passing new roles to data/applications.yaml and data/seen-jobs.yaml
 
-End with top 3 apply-today picks — each must have passed QA verify_listing_open.
+End with top 3 apply-today picks: each must have passed QA verify_listing_open.
 EOF
 )"
 

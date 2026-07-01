@@ -1,4 +1,4 @@
-# Job Search Cursor Workflow — Design
+# Job Search Cursor Workflow: Design
 
 ## Goal
 
@@ -10,13 +10,13 @@ No personal data, tracker history, or resume content is committed to git.
 
 ### In scope (v1)
 
-- **`job-search-daily` skill** — search, dedup, listing freshness, QA gate, fit scoring, tracker updates, daily report
-- **`examples/`** — sanitized templates for `config.yaml`, `applications.yaml`, `seen-jobs.yaml`, `recruiters.yaml`
-- **Gitignored `data/`** — all live/personal state (Resume-Matcher pattern)
-- **`scripts/run-daily-search.sh`** — headless daily run via Cursor Agent CLI
-- **Optional macOS launchd plist template** — weekday scheduling
-- **`README.md`** — clone, init data, configure, first run
-- **`docs/ROADMAP.md`** — gaps, future work, Obsidian compatibility layer
+- **`job-search-daily` skill**: search, dedup, listing freshness, QA gate, fit scoring, tracker updates, daily report
+- **`examples/`**: sanitized templates for `config.yaml`, `applications.yaml`, `seen-jobs.yaml`, `recruiters.yaml`
+- **Gitignored `data/`**: all live/personal state (Resume-Matcher pattern)
+- **`scripts/run-daily-search.sh`**: headless daily run via Cursor Agent CLI
+- **Optional macOS launchd plist template**: weekday scheduling
+- **`README.md`**: clone, init data, configure, first run
+- **`docs/ROADMAP.md`**: gaps, future work, Obsidian compatibility layer
 
 ### Out of scope (v1)
 
@@ -89,19 +89,19 @@ data/*
 
 Search criteria distilled from the maintainer's working config:
 
-- `profile` — `resume_path`, location, relocation preference
-- `role_priority` — ordered role titles
-- `location_rules` — local vs remote rules
-- `preferences` — industry, work model, seniority
-- `industry_labels` — standard labels for tracker rows
-- `industry_awareness` — ★ actively targeting, ⚠ prefer to avoid (flag only, never filter)
-- `resume_fit` — scoring rubric against local resume
-- `deduplication` — match rules, normalization, canonical URL priority
-- `listing_freshness` — closed signals, closing dates, open proof, board hints
-- `qa_gate` — mandatory checks before any tracker write
-- `search_sources` — ordered source list with URLs
-- `excluded_sources` — boards to skip
-- `watch_companies` — company ATS watch list
+- `profile`: `resume_path`, location, relocation preference
+- `role_priority`: ordered role titles
+- `location_rules`: local vs remote rules
+- `preferences`: industry, work model, seniority
+- `industry_labels`: standard labels for tracker rows
+- `industry_awareness`: ★ actively targeting, ⚠ prefer to avoid (flag only, never filter)
+- `resume_fit`: scoring rubric against local resume
+- `deduplication`: match rules, normalization, canonical URL priority
+- `listing_freshness`: closed signals, closing dates, open proof, board hints
+- `qa_gate`: mandatory checks before any tracker write
+- `search_sources`: ordered source list with URLs
+- `excluded_sources`: boards to skip
+- `watch_companies`: company ATS watch list
 
 The published `examples/config.example.yaml` uses generic placeholders (city, region, sample URLs) rather than personal criteria.
 
@@ -125,10 +125,10 @@ Recruiter outreach tracker with touchpoint history.
 
 Port the maintainer's `job-search-daily` skill with these adaptations:
 
-1. **Paths** — all reads/writes use `data/` at repo root (no Obsidian vault paths).
-2. **Profile** — `config.yaml` → `profile.resume_path` for fit scoring (local file only).
-3. **No resume tooling in-repo** — after shortlisting, skill suggests saving the JD to a user-chosen path; no in-repo tailoring step.
-4. **Timezone** — script defaults to `Australia/Brisbane`; override via `JOB_SEARCH_TZ`.
+1. **Paths**: all reads/writes use `data/` at repo root (no Obsidian vault paths).
+2. **Profile**: `config.yaml` → `profile.resume_path` for fit scoring (local file only).
+3. **No resume tooling in-repo**: after shortlisting, skill suggests saving the JD to a user-chosen path; no in-repo tailoring step.
+4. **Timezone**: script defaults to `Australia/Brisbane`; override via `JOB_SEARCH_TZ`.
 5. **Core loop unchanged:**
    - Load state
    - Search sources in `search_sources.order` (skip `excluded_sources`)
@@ -138,7 +138,7 @@ Port the maintainer's `job-search-daily` skill with these adaptations:
    - Mandatory QA gate before any tracker write
    - Write daily report
    - Append QA-passing new roles to tracker files
-6. **Flags** — industry ★/⚠ and resume fit ✓/~ are independent.
+6. **Flags**: industry ★/⚠ and resume fit ✓/~ are independent.
 
 ### Daily report layout
 
@@ -156,7 +156,7 @@ Port the maintainer's `job-search-daily` skill with these adaptations:
 
 ## Roadmap (`docs/ROADMAP.md`)
 
-Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [apply workflow](../../../README.md#apply-workflow) in README).
+Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [apply workflow](../../../README.md#apply-workflow) in README). Design specs: [update-application](2026-07-01-update-application-design.md), [company-research](2026-07-01-company-research-design.md), [interview-prep](2026-07-01-interview-prep-design.md), [resume-feedback](2026-07-01-resume-feedback-design.md).
 
 | Area | Examples |
 |------|----------|

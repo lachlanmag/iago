@@ -8,13 +8,13 @@ Issue numbers link to open tickets. Merged duplicates are noted inline.
 
 | Skill | Status | Issue | Purpose |
 |-------|--------|-------|---------|
-| `job-search-daily` | **Shipped** | — | Daily search, dedup, QA gate, fit scoring, tracker updates, daily report |
-| `job-search-pipeline-review` | **Shipped** | — | Triage open pipeline, re-verify listings, rank and recommend shortlist/apply priorities |
+| `job-search-daily` | **Shipped** | n/a | Daily search, dedup, QA gate, fit scoring, tracker updates, daily report |
+| `job-search-pipeline-review` | **Shipped** | n/a | Triage open pipeline, re-verify listings, rank and recommend shortlist/apply priorities |
 | `job-search-setup` | Planned | [#1](https://github.com/lachlanmag/job-search/issues/1) | Conversational onboarding; writes gitignored `data/` YAML |
 | `update-application` | **Shipped** | [#5](https://github.com/lachlanmag/job-search/issues/5) | Pipeline status updates; chains research on shortlist and prep on apply |
 | `company-research` | **Shipped** | [#6](https://github.com/lachlanmag/job-search/issues/6) | Role brief from company site + JD (auto on shortlist) |
 | `interview-prep` | **Shipped** | [#7](https://github.com/lachlanmag/job-search/issues/7) | Talking points from JD + resume (auto on apply) |
-| `resume-feedback` | **Shipped** | — | Tailored resume review vs JD before submit |
+| `resume-feedback` | **Shipped** | n/a | Tailored resume review vs JD before submit |
 | `recruiter-follow-up` | Planned | [#8](https://github.com/lachlanmag/job-search/issues/8) | Touchpoint logging aligned with `data/recruiters.yaml` |
 
 ---
@@ -58,7 +58,7 @@ Quality, secondary skills, integrations, and contributor docs.
 | 13 | **Contributing guide** | [#15](https://github.com/lachlanmag/job-search/issues/15) | Needed before community PRs on source catalog (#23). |
 | 14 | **Notification webhooks** | [#4](https://github.com/lachlanmag/job-search/issues/4) | Slack/email on daily run completion or top-pick changes. |
 | 15 | **Launchd plist automation** | [#21](https://github.com/lachlanmag/job-search/issues/21) | Auto `__REPO_ROOT__` substitution; may land inside #1. |
-| 16 | **Resume-feedback tracker integration** | — | `update-application` sets `resume_status: ready` when user confirms apply-ready after feedback. |
+| 16 | **Resume-feedback tracker integration** | n/a | `update-application` sets `resume_status: ready` when user confirms apply-ready after feedback. |
 
 ---
 

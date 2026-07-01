@@ -10,10 +10,10 @@ Use only the evidence below. Do not invent company facts, metrics, or requiremen
 ### Job description
 {job_description}
 
-### Candidate resume themes (from master resume — for fit angle only)
+### Candidate resume themes (from master resume, for fit angle only)
 {resume_themes}
 
-### Research notes (company site, news, listing — with source hints)
+### Research notes (company site, news, listing, with source hints)
 {research_notes}
 
 ---
@@ -22,7 +22,7 @@ Use only the evidence below. Do not invent company facts, metrics, or requiremen
 
 Use these headings exactly:
 
-# Role brief — {company} — {title}
+# Role brief: {company}, {title}
 
 ## Snapshot
 - Company, title, location/work model (from JD)
@@ -58,4 +58,4 @@ Use these headings exactly:
 ## Sources consulted
 - Bulleted list of URLs or "JD only" if research was thin
 
-Keep the full brief under 800 words unless the JD is unusually long. No em dashes.
+Keep the full brief under 800 words unless the JD is unusually long. No em dash characters.

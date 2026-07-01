@@ -2,7 +2,7 @@
 #
 # canonical url: preferred direct listing URL (company ATS, gov portal, careers site)
 # alternate_urls (optional): aggregator or mirror links for the same role
-# ats_id (optional): lever/workable/greenhouse/ashby job id when known — used for cross-board dedup
+# ats_id (optional): lever/workable/greenhouse/ashby job id when known: used for cross-board dedup
 # listing_verified (optional): YYYY-MM-DD last QA/freshness check passed (see config listing_freshness + qa_gate)
 
 seen_jobs: []

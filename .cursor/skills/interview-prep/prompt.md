@@ -22,7 +22,7 @@ Use only the candidate's resume and the job/company inputs. Do not invent experi
 
 Use these headings exactly:
 
-# Interview prep — {company} — {title}
+# Interview prep: {company}, {title}
 
 ## Elevator pitch (60 seconds)
 A spoken intro tailored to this role and company.
@@ -59,4 +59,4 @@ Honest gaps vs JD; suggested framing without exaggeration.
 - [ ] Prepare 2 questions for each stage
 - [ ] Test tech/setup if remote
 
-Keep answers concise and conversational. No em dashes.
+Keep answers concise and conversational. No em dash characters.

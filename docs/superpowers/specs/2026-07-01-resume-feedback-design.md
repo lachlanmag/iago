@@ -1,4 +1,4 @@
-# Resume Feedback Skill — Design
+# Resume Feedback Skill: Design
 
 ## Goal
 
@@ -12,12 +12,12 @@ No personal resume content, job descriptions, or feedback artifacts are committe
 
 ### In scope (v1.1)
 
-- **`resume-feedback` skill** — input resolution, verbatim prompt application, JSON validation, artifact save, chat presentation
-- **`prompt.md`** — mandatory review prompt with fixed markdown headings and JSON output shape
-- **Gitignored `data/resume-feedback/`** — local feedback artifacts (`YYYY-MM-DD-{company-slug}.json`)
-- **Optional tracker context** — resolve company/title from `data/applications.yaml` when user names a shortlisted role
-- **Optional config hook** — `profile.output_language` in `data/config.yaml` for review language (default: English)
-- **README and ROADMAP updates** — document the skill, trigger phrases, and artifact path
+- **`resume-feedback` skill**: input resolution, verbatim prompt application, JSON validation, artifact save, chat presentation
+- **`prompt.md`**: mandatory review prompt with fixed markdown headings and JSON output shape
+- **Gitignored `data/resume-feedback/`**: local feedback artifacts (`YYYY-MM-DD-{company-slug}-{title-slug}.json`)
+- **Optional tracker context**: resolve company/title from `data/applications.yaml` when user names a shortlisted role
+- **Optional config hook**: `profile.output_language` in `data/config.yaml` for review language (default: English)
+- **README and ROADMAP updates**: document the skill, trigger phrases, and artifact path
 
 ### Out of scope (v1.1)
 
@@ -53,7 +53,7 @@ job-search/
     prompt.md             # Mandatory review prompt (substitute placeholders)
   data/                   # gitignored
     resume-feedback/
-      YYYY-MM-DD-{company-slug}.json
+      YYYY-MM-DD-{company-slug}-{title-slug}.json
   docs/superpowers/specs/
     2026-07-01-resume-feedback-design.md
 ```
@@ -74,7 +74,7 @@ Collect before running the review. If any required input is missing, ask once wi
 
 | Placeholder | Source | Required |
 |-------------|--------|----------|
-| `{job_description}` | Full JD text: user paste, local file path, or saved JD the user names | Yes |
+| `{job_description}` | Full JD text: `jd_path` on tracker row, user paste, or local file path | Yes |
 | `{resume_data}` | Tailored resume as JSON string (file path or inline JSON) | Yes |
 | `{output_language}` | User request, else `profile.output_language` in config, else `English` | Yes (defaulted) |
 
@@ -82,7 +82,7 @@ Collect before running the review. If any required input is missing, ask once wi
 
 **Resume JSON:** Use the file as provided. Do not convert from markdown unless the user asks. Pretty-print when substituting into the prompt if the file is minified.
 
-**Tracker shortcut:** If the user names a shortlisted role, read `data/applications.yaml` for company/title context only. Still require JD and tailored resume JSON from paths the user provides.
+**Tracker shortcut:** If the user names a shortlisted role, read `data/applications.yaml` for company/title and use `jd_path` when set (from `company-research`). Still require tailored resume JSON from path the user provides.
 
 ## Workflow behavior
 
@@ -102,8 +102,8 @@ Collect before running the review. If any required input is missing, ask once wi
 
 Model response must be **JSON only** with:
 
-- `report_markdown` — full markdown report with headings exactly as specified in the prompt
-- `questions` — array of 3 to 8 items with unique `question_id` (`q1`, `q2`, …) and `category` in `gap` | `risk` | `clarification` | `improvement` | `ats`
+- `report_markdown`: full markdown report with headings exactly as specified in the prompt
+- `questions`: array of 3 to 8 items with unique `question_id` (`q1`, `q2`, …) and `category` in `gap` | `risk` | `clarification` | `improvement` | `ats`
 
 If the response includes markdown fences or prose outside JSON, extract or re-run until valid JSON is produced.
 
@@ -111,9 +111,9 @@ If the response includes markdown fences or prose outside JSON, extract or re-ru
 
 Write:
 
-`data/resume-feedback/YYYY-MM-DD-{company-slug}.json`
+`data/resume-feedback/YYYY-MM-DD-{company-slug}-{title-slug}.json`
 
-Use a lowercase slug from company name (e.g. `acme-corp`). If multiple reviews same day for the same company, append `-2`, `-3`, etc.
+Use `{company-slug}-{title-slug}` (same slug rules as `company-research`). If multiple reviews same day for the same company and title, append `-2`, `-3`, etc.
 
 ### 5. Present to user
 
@@ -129,7 +129,7 @@ If the user answers clarification questions, offer to re-run feedback on an upda
 
 ## Data model
 
-### Feedback artifact (`data/resume-feedback/YYYY-MM-DD-{company-slug}.json`)
+### Feedback artifact (`data/resume-feedback/YYYY-MM-DD-{company-slug}-{title-slug}.json`)
 
 ```json
 {
@@ -184,7 +184,7 @@ Not required for v1.1 ship; skill defaults to English when absent.
 - Evidence-based and neutral; no invented experience or metrics.
 - Flag JD mirroring and unsupported tailoring claims explicitly.
 - ATS recommendations must tie keywords to evidenced experience; mark unverified items for candidate confirmation.
-- No em dashes in generated report text (per prompt and workspace rule).
+- No em dash characters in generated report text (per prompt and workspace rule).
 
 ## Trigger phrases
 

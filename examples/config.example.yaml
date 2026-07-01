@@ -1,4 +1,4 @@
-# Job search criteria — copy to data/config.yaml and customize
+# Job search criteria: copy to data/config.yaml and customize
 # Run: bash scripts/init-data.sh
 
 profile:
@@ -27,12 +27,12 @@ location_rules:
 
 preferences:
   industry: B2B SaaS preferred; B2C SaaS acceptable
-  industry_focus: null  # e.g. Healthtech — highlighted in daily reports when set
+  industry_focus: null  # e.g. Healthtech: highlighted in daily reports when set
   work_model: hybrid preferred for local metro
   ai_exposure: bonus_only  # not a filter requirement
   min_seniority: mid  # e.g. 5+ years PM experience
 
-# Standard industry labels — use one per job in applications.yaml
+# Standard industry labels: use one per job in applications.yaml
 industry_labels:
   - B2B SaaS
   - B2C SaaS
@@ -51,12 +51,12 @@ industry_labels:
   - PropTech / Construction tech
   - Other
 
-# Awareness only — never exclude these from search results
+# Awareness only: never exclude these from search results
 industry_awareness:
   prefer_to_avoid: []
   actively_targeting: []
 
-# Resume fit — separate from industry_awareness (★ / ⚠)
+# Resume fit: separate from industry_awareness (★ / ⚠)
 # Based on alignment with profile.resume_path. Never filters roles out.
 resume_fit:
   flag_strong: "✓ strong resume fit"
@@ -66,7 +66,7 @@ resume_fit:
     strong: "Role maps cleanly to 2+ core resume themes with minimal gap"
     good: "Clear overlap on role type + at least one core theme"
     stretch: "Transferable PM/PO/BA skills but domain, seniority, or craft mismatch"
-    weak: "Little overlap — no flag shown"
+    weak: "Little overlap: no flag shown"
   core_themes:
     - B2B SaaS platform product management (module ownership, roadmap, backlog)
     - Enterprise onboarding, lifecycle, activation, and expansion
@@ -136,7 +136,7 @@ listing_freshness:
     lever: "404 or 'page doesn't exist' = closed; Apply button should be present"
     workable: "Closed roles often redirect or show 'This job is no longer available'"
     ashby: "404 or missing Apply = closed"
-    aggregators: "Never save from aggregator alone — resolve to ATS and verify open there"
+    aggregators: "Never save from aggregator alone: resolve to ATS and verify open there"
 
 qa_gate:
   run_before_save: true

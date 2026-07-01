@@ -57,6 +57,7 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 | `daily-runs/YYYY-MM-DD.md` | Daily search reports |
 | `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports |
 | `company-research/` | Role briefs (auto when shortlisted) |
+| `jds/` | Full job descriptions (auto when shortlisted) |
 | `interview-prep/` | Interview prep (auto when applied) |
 | `resume-feedback/` | Tailored resume review artifacts |
 | `logs/` | CLI run logs |
@@ -101,10 +102,12 @@ Writes a report to `data/pipeline-reviews/YYYY-MM-DD.md` with ranked apply targe
 Typical path from shortlist to interview prep:
 
 ```
-shortlist → company-research → save JD → tailor externally → resume-feedback → apply → interview-prep
+shortlist → company-research (saves JD + brief) → tailor externally → resume-feedback → apply → interview-prep
 ```
 
-Point `profile.resume_path` at your master resume for fit scoring during search. Save job descriptions locally when shortlisting (`jd_path` on the tracker row).
+Point `profile.resume_path` at your master resume for fit scoring during search. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
+
+If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
 
 ### Updating applications
 
@@ -112,7 +115,7 @@ Use `update-application` so status changes chain follow-on work automatically:
 
 | Action | Command example | Chained skill |
 |--------|-----------------|---------------|
-| Shortlist | `Shortlist [Company] — JD at [path]` | `company-research` (role brief) |
+| Shortlist | `Shortlist [Company]` | `company-research` (saves JD + role brief) |
 | Apply | `Set [Company] to applied on [date]` | `interview-prep` (talking points) |
 
 Pipeline review also runs `company-research` when you confirm a `discovered` → `shortlisted` promotion.
@@ -121,7 +124,7 @@ Status values: `discovered`, `shortlisted`, `applied`, `interview`, `rejected`, 
 
 ### Company research (on shortlist)
 
-Produces a role brief under `data/company-research/` and sets `company_research` on the tracker row.
+Produces a role brief under `data/company-research/`, saves the full JD under `data/jds/`, and sets `company_research` and `jd_path` on the tracker row.
 
 > Research [Company] for this role
 
@@ -133,7 +136,7 @@ Reviews a **tailored resume JSON** against the job description. Does not rewrite
 
 > Review my tailored resume for [Company]
 
-Provide paths to the saved JD and tailored JSON (e.g. from [Resume-Matcher](https://github.com/srbhr/Resume-Matcher)). Trigger phrases: resume feedback, ATS review, `/resume-feedback`.
+Provide the saved JD path (`jd_path` on the tracker row, or user path) and tailored JSON (e.g. from [Resume-Matcher](https://github.com/srbhr/Resume-Matcher)). Trigger phrases: resume feedback, ATS review, `/resume-feedback`.
 
 ### Interview prep (on apply)
 
@@ -149,4 +152,4 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned skills, Obsidian compatibilit
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

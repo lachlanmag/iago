@@ -49,7 +49,7 @@ Confirm the status change the user wants and any dates (`applied`, `discovered` 
 
 | To status | Typical from | Extra fields |
 |-----------|--------------|--------------|
-| `shortlisted` | `discovered` | Optional `jd_path`, `resume_status: none` |
+| `shortlisted` | `discovered` | `jd_path` set by chained `company-research`; optional `resume_status: none` |
 | `applied` | `shortlisted` (or `discovered` if skip shortlist) | `applied: YYYY-MM-DD`, optional `channel` |
 | `interview` | `applied` | Optional notes for stage/round |
 | `rejected`, `withdrawn`, `offer`, `closed` | any open | Optional note with reason |
@@ -76,7 +76,7 @@ Run in the **same turn** after the tracker write succeeds:
 | `applied` | `interview-prep` | Run full workflow for this row. Produce prep artifact. |
 | `interview` | `interview-prep` | Run only if user asked for prep refresh or `interview_prep` is missing/stale |
 
-Announce chaining briefly: "Shortlisted — running company research…" or "Applied — generating interview prep…"
+Announce chaining briefly: "Shortlisted: running company research…" or "Applied: generating interview prep…"
 
 If chained skill fails (e.g. listing closed, no JD), report the failure, leave status as written, and give manual next step.
 
@@ -90,7 +90,7 @@ Summarize:
 
 ## Manual commands
 
-> Shortlist [Company] — JD saved at [path]
+> Shortlist [Company]
 
 > Set [Company] to applied on 2026-07-01 via linkedin
 
@@ -99,5 +99,5 @@ Summarize:
 ## Out of scope
 
 - Discovering new roles (`job-search-daily`)
-- Pipeline ranking (`job-search-pipeline-review`) — but pipeline-review should chain `company-research` when it promotes rows to `shortlisted` with user confirmation
+- Pipeline ranking (`job-search-pipeline-review`), but pipeline-review should chain `company-research` when it promotes rows to `shortlisted` with user confirmation
 - Resume tailoring or feedback

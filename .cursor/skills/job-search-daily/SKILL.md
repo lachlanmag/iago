@@ -20,7 +20,7 @@ description: >-
 | File | Purpose |
 |------|---------|
 | `data/config.yaml` | Search criteria and saved search URLs |
-| `data/applications.yaml` | Tracker — applied / shortlisted / discovered |
+| `data/applications.yaml` | Tracker: applied / shortlisted / discovered |
 | `data/seen-jobs.yaml` | Dedup list from prior runs |
 | `data/recruiters.yaml` | Recruiter outreach (optional) |
 | `profile.resume_path` in config | Local resume markdown for fit scoring |
@@ -36,7 +36,7 @@ Repo root is the Cursor workspace. All paths below are relative to repo root unl
 5. **Industry awareness:** If a role's industry is in `industry_awareness.prefer_to_avoid`, **flag it** (⚠). If in `actively_targeting` or `preferences.industry_focus`, **highlight it** (★). Never exclude based on industry.
 6. **Resume fit:** Score every role against `config.yaml` → `resume_fit` and the file at `profile.resume_path`. Set `resume_fit` to `strong`, `good`, `stretch`, or `weak` with a one-line `resume_fit_note`. Show flags: **✓ strong resume fit**, **✓ resume fit**, or **~ stretch fit**. Independent from industry ★/⚠.
 7. **Work model:** Follow `preferences.work_model` for local roles.
-8. **AI exposure:** Bonus only — do not filter roles out for lacking AI.
+8. **AI exposure:** Bonus only: do not filter roles out for lacking AI.
 9. **Links:** Direct job listing URLs only (not search result pages).
 10. **Listing freshness (at intake):** Before adding any role to the candidate pool, check the listing page for expiry/closed signals and closing dates. A visible job description alone is **not** proof the role is open.
 11. **Dedup:** Before saving any role, run duplicate detection. Store the **canonical** (most direct) URL only.
@@ -59,7 +59,7 @@ Prefer company ATS and gov direct links over aggregators. Use browser when SPA s
 
 ### 2a. Listing freshness at intake (required during search)
 
-For **every** candidate role found during search — before scoring, tiering, or adding to the candidate pool — open the **canonical** listing URL and verify it is still accepting applications.
+For **every** candidate role found during search: before scoring, tiering, or adding to the candidate pool: open the **canonical** listing URL and verify it is still accepting applications.
 
 Read `config.yaml` → `listing_freshness`. Apply these rules:
 
@@ -68,7 +68,7 @@ Read `config.yaml` → `listing_freshness`. Apply these rules:
 | **Closed signals** | If page text matches any `closed_signals` phrase (case-insensitive), **skip immediately**. Log in daily report **Skipped expired / closed**. |
 | **Closing date** | If `date_fields` show a date, parse it. Past date → skip. Within `closing_soon_days` → keep but flag **closing soon** in report. |
 | **Open proof** | Require evidence from `open_proof`: active Apply control, no expired banner, URL resolves. Follow `board_hints`. |
-| **Aggregator hits** | Resolve to employer ATS first, then run freshness check on the ATS URL — not the aggregator page alone. |
+| **Aggregator hits** | Resolve to employer ATS first, then run freshness check on the ATS URL: not the aggregator page alone. |
 | **Archived JD trap** | If full JD is visible but an expired/closed banner exists, treat as **closed** regardless of body text. |
 
 Record on each passing candidate (internal notes until save):
@@ -119,7 +119,7 @@ Output tiers (adapt to user's location rules):
 
 For each role include: company, title, industry, **resume fit flag**, location, work model, why it fits (1 line), direct URL, tier.
 
-**Flag legend (independent — combine as needed):**
+**Flag legend (independent: combine as needed):**
 
 | Flag | Source | Meaning |
 |------|--------|---------|
@@ -135,7 +135,7 @@ Skip roles already in tracker with status `applied`, `interview`, `rejected`, `w
 
 Combine intake-passing new roles. Reject any that failed freshness at step 2a (already logged).
 
-### 5. QA gate (mandatory — run before any tracker write)
+### 5. QA gate (mandatory: run before any tracker write)
 
 Read `config.yaml` → `qa_gate`. This step is **not optional**.
 
@@ -165,13 +165,13 @@ Create or overwrite:
 
 #### Above the fold (read this first)
 
-1. **Summary** — 3–5 bullets: new roles saved, closed since last run, market read, **Prioritize today** (top 3 QA-verified picks)
-2. **New roles this run** — tiered table (Tier, Company, Title, Industry, Flags, Location, Work model, Closes, Link)
-3. **Application pipeline** — status counts from `applications.yaml`
-4. **Shortlist** — all `shortlisted` rows with listing status and next action
-5. **Open tracker** — `discovered` rows worth revisiting (QA-verified this run)
-6. **Flags summary** — all non-`closed` tracker roles
-7. **Closed since last run** — rows set to `closed` this run only
+1. **Summary**: 3–5 bullets: new roles saved, closed since last run, market read, **Prioritize today** (top 3 QA-verified picks)
+2. **New roles this run**: tiered table (Tier, Company, Title, Industry, Flags, Location, Work model, Closes, Link)
+3. **Application pipeline**: status counts from `applications.yaml`
+4. **Shortlist**: all `shortlisted` rows with listing status and next action
+5. **Open tracker**: `discovered` rows worth revisiting (QA-verified this run)
+6. **Flags summary**: all non-`closed` tracker roles
+7. **Closed since last run**: rows set to `closed` this run only
 
 #### Audit / detail (below the fold)
 
@@ -197,7 +197,7 @@ End with:
 
 - Top 3 roles to apply to this week
 - If `discovered` count is high (roughly 5+), suggest running `job-search-pipeline-review` to triage and pick apply targets for the week
-- Reminder to save job descriptions to a local path when shortlisting (user's choice; not in repo)
+- Reminder: shortlisting via `update-application` or pipeline review saves the JD and runs `company-research` automatically
 - Reminder: use `update-application` to set `applied` (chains `interview-prep` automatically) or shortlist via pipeline review (chains `company-research`)
 
 ## Status values
@@ -241,7 +241,7 @@ Requires `cursor agent login` once. Logs: `data/logs/latest.log`
 
 ```bash
 chmod +x scripts/run-daily-search.sh scripts/init-data.sh
-# Edit scripts/com.example.job-search-daily.plist — replace __REPO_ROOT__
+# Edit scripts/com.example.job-search-daily.plist: replace __REPO_ROOT__
 cp scripts/com.example.job-search-daily.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
 ```
@@ -252,8 +252,8 @@ launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
 
 **Mark an application:**
 
-> Update data/applications.yaml — set [company] to applied on [date]
+> Set [Company] to applied on [date] via update-application
 
 ## Out of scope
 
-This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export are separate workflows (tool-agnostic; use whatever you prefer after shortlisting).
+This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export stay external (use whatever you prefer after shortlisting). After tailoring, use `resume-feedback` for review, then apply via `update-application`.
