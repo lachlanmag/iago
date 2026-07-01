@@ -7,6 +7,10 @@ profile:
   willing_to_relocate: false
   output_language: English  # optional; language for company-research, interview-prep, resume-feedback
 
+integrations:
+  resume_matcher:
+    enabled: false  # true when using Resume-Matcher for tailoring handoff
+
 role_priority:
   - Product Manager
   - Senior Product Manager
