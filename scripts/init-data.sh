@@ -32,4 +32,4 @@ echo "  1. Edit data/config.yaml: set profile.resume_path, location, and search 
 echo "  2. Open this repo in Cursor"
 echo "  3. Run: Run the daily job search"
 echo "  4. After shortlisting: company-research runs automatically (or /company-research)"
-echo "  5. Before applying: tailor externally, then /resume-feedback; set applied via update-application"
+echo "  5. Before applying: /resume-feedback (markdown from profile.resume_path by default), then set applied via update-application"

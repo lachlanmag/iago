@@ -2,9 +2,9 @@
 
 A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
 
-**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking, pipeline triage and prioritization, role briefs on shortlist, tailored resume review before apply, interview prep on submit.
+**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking, pipeline triage and prioritization, role briefs on shortlist, resume feedback before apply, interview prep on submit.
 
-**Out of scope:** resume tailoring or rewriting, cover letters, PDF export (tailor externally, then run `resume-feedback` for review).
+**Out of scope:** resume tailoring or rewriting, cover letters, PDF export (`resume-feedback` reviews your resume against the JD; it does not rewrite it).
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ job-search/
     update-application/              # Status updates; chains research + prep
     company-research/                # Role brief (auto on shortlist)
     interview-prep/                  # Talking points (auto on apply)
-    resume-feedback/                 # Tailored resume review before submit
+    resume-feedback/                 # Resume review vs JD before submit
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
   scripts/                           # init-data.sh, run-daily-search.sh
@@ -59,7 +59,7 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 | `company-research/` | Role briefs (auto when shortlisted) |
 | `jds/` | Full job descriptions (auto when shortlisted) |
 | `interview-prep/` | Interview prep (auto when applied) |
-| `resume-feedback/` | Tailored resume review artifacts |
+| `resume-feedback/` | Resume feedback artifacts |
 | `logs/` | CLI run logs |
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
