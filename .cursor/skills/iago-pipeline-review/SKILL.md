@@ -1,10 +1,12 @@
 ---
-name: job-search-pipeline-review
+name: iago-pipeline-review
 description: >-
   Review the open application pipeline, re-verify listings, rank roles by fit
   and urgency, and recommend which jobs to shortlist or apply to first. Use when
   the user asks to review the pipeline, prioritize applications, decide what to
-  shortlist, triage discovered roles, or runs /pipeline-review.
+  shortlist, triage discovered roles, what should I apply to first, which jobs
+  should I shortlist, rank my open roles, weekly pipeline review, help me decide
+  what to apply to this week, or runs /iago-pipeline or /pipeline-review.
 ---
 
 # Pipeline review
@@ -15,9 +17,10 @@ description: >-
 - User asks which open jobs to apply to first this week
 - User wants a ranked view of the pipeline without running a new search
 - Weekly review after one or more daily search runs
-- User says "review my pipeline", "prioritize applications", or `/pipeline-review`
+- User says "review my pipeline", "prioritize applications", "triage discovered roles", "what should I apply to first", "which jobs should I shortlist", "rank my open roles", "weekly pipeline review", or "help me decide what to apply to this week"
+- User runs `/iago-pipeline` or `/pipeline-review`
 
-**Not this skill:** finding new listings (use `job-search-daily`), marking applied/rejected (use `update-application`).
+**Not this skill:** finding new listings (use `iago-daily`), marking applied/rejected (use `update-application`).
 
 ## Files (always read first)
 
@@ -53,7 +56,7 @@ Review roles with status:
 
 ### 2. Re-verify open listings (required)
 
-For every `discovered` and `shortlisted` row, open the **canonical** `url` and apply `config.yaml` → `listing_freshness` (same rules as `job-search-daily` step 2a).
+For every `discovered` and `shortlisted` row, open the **canonical** `url` and apply `config.yaml` → `listing_freshness` (same rules as `iago-daily` step 2a).
 
 | Outcome | Action |
 |---------|--------|
@@ -69,7 +72,7 @@ Use browser for SPAs that block fetch. Resolve aggregator URLs to employer ATS w
 
 Use the same signals as daily search (do not invent new tiers):
 
-**Tier** (from `job-search-daily`: local metro + role + industry + work model):
+**Tier** (from `iago-daily`: local metro + role + industry + work model):
 
 | Tier | Criteria |
 |------|----------|
