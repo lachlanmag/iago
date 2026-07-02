@@ -156,7 +156,7 @@ Port the maintainer's `iago-daily` skill with these adaptations:
 
 ## Roadmap (`docs/ROADMAP.md`)
 
-Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [apply workflow](../../../README.md#apply-workflow) in README). Design specs: [update-application](2026-07-01-update-application-design.md), [company-research](2026-07-01-company-research-design.md), [interview-prep](2026-07-01-interview-prep-design.md), [resume-feedback](2026-07-01-resume-feedback-design.md).
+Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [application workflow](../../../README.md#application-workflow) in README). Design specs: [update-application](2026-07-01-update-application-design.md), [company-research](2026-07-01-company-research-design.md), [interview-prep](2026-07-01-interview-prep-design.md), [resume-feedback](2026-07-01-resume-feedback-design.md).
 
 | Area | Examples |
 |------|----------|
