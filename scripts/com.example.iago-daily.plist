@@ -3,15 +3,15 @@
 <!--
   macOS launchd template for weekday daily job search.
   Before use:
-    1. Replace __REPO_ROOT__ with the absolute path to your job-search clone
-    2. Replace com.example.job-search-daily with your reverse-DNS label if desired
-    3. cp scripts/com.example.job-search-daily.plist ~/Library/LaunchAgents/
-    4. launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
+    1. Replace __REPO_ROOT__ with the absolute path to your iago clone
+    2. Replace com.example.iago-daily with your reverse-DNS label if desired
+    3. cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
+    4. launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
 -->
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.example.job-search-daily</string>
+  <string>com.example.iago-daily</string>
 
   <key>ProgramArguments</key>
   <array>

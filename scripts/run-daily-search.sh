@@ -14,11 +14,11 @@ if [[ ! -f "$DATA_DIR/config.yaml" ]]; then
   exit 1
 fi
 
-# Default timezone for run date. Override with JOB_SEARCH_TZ if needed.
-JOB_SEARCH_TZ="${JOB_SEARCH_TZ:-Australia/Brisbane}"
+# Default timezone for run date. Override with IAGO_TZ if needed.
+IAGO_TZ="${IAGO_TZ:-Australia/Brisbane}"
 
 local_date() {
-  TZ="$JOB_SEARCH_TZ" date "$@"
+  TZ="$IAGO_TZ" date "$@"
 }
 
 TIMESTAMP="$(local_date +%Y-%m-%d_%H-%M-%S)"
@@ -46,9 +46,9 @@ resolve_cursor() {
 CURSOR="$(resolve_cursor)"
 
 PROMPT="$(cat <<EOF
-Read and follow the job-search-daily skill at .cursor/skills/job-search-daily/SKILL.md in this workspace.
+Read and follow the iago-daily skill at .cursor/skills/iago-daily/SKILL.md in this workspace.
 
-Run date (${JOB_SEARCH_TZ}): ${RUN_DATE}
+Run date (${IAGO_TZ}): ${RUN_DATE}
 Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks: not the system UTC date.
 
 Run the full daily workflow:
@@ -66,7 +66,7 @@ EOF
 )"
 
 {
-  echo "=== Daily job search started: $(local_date -Iseconds) (${JOB_SEARCH_TZ}, run date ${RUN_DATE}) ==="
+  echo "=== Daily job search started: $(local_date -Iseconds) (${IAGO_TZ}, run date ${RUN_DATE}) ==="
   echo "Repo: $REPO_ROOT"
   echo "Cursor: $CURSOR"
   echo
@@ -90,7 +90,7 @@ EOF
   EXIT=$?
 
   echo
-  echo "=== Finished: $(local_date -Iseconds) (${JOB_SEARCH_TZ}, run date ${RUN_DATE}) (exit $EXIT) ==="
+  echo "=== Finished: $(local_date -Iseconds) (${IAGO_TZ}, run date ${RUN_DATE}) (exit $EXIT) ==="
   exit "$EXIT"
 } >>"$LOG_FILE" 2>&1
 
