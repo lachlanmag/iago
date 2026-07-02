@@ -194,11 +194,13 @@ All skills that reference `job-search-daily` or `job-search-pipeline-review` by 
 
 ## Post-merge checklist (manual, out of repo)
 
+After merging the rebrand PR, complete these manual steps outside the repo:
+
 1. Rename GitHub repo to `iago` on github.com
 2. `git remote set-url origin git@github.com:lachlanmag/iago.git`
-3. Optionally rename local clone: `job-search-2` → `iago`
-4. `launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist` (if loaded)
-5. Remove old plist from `~/Library/LaunchAgents/`
+3. Optionally rename local clone directory to `iago` (e.g. `job-search-2` → `iago`)
+4. If you had a scheduled daily search before the rebrand: `launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist`
+5. Remove `~/Library/LaunchAgents/com.example.job-search-daily.plist`
 6. Edit `scripts/com.example.iago-daily.plist`: set `__REPO_ROOT__` to new clone path
 7. `cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/`
 8. `launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist`
@@ -214,7 +216,7 @@ All skills that reference `job-search-daily` or `job-search-pipeline-review` by 
 - [ ] "Update applications" disambiguation applied (daily vs update-application)
 - [ ] `scripts/run-daily-search.sh` points at `iago-daily/SKILL.md` and uses `IAGO_TZ`
 - [ ] README clone instructions use `lachlanmag/iago`
-- [ ] Post-merge checklist present in README or this spec
+- [ ] Post-merge checklist present in this spec
 
 ## Repository layout (after rebrand)
 
