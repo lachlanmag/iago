@@ -35,7 +35,7 @@ bash scripts/init-data.sh
 2. **Track what you find** in local YAML files under `data/`.
 3. **Review and prioritize** your pipeline when enough roles pile up.
 4. **Shortlist and research** promising jobs, saving the JD and a brief automatically.
-5. **Review your tailored resume** before applying.
+5. **Review your resume** before applying.
 6. **Generate interview prep** once an application is submitted.
 
 ### What Iago handles
@@ -87,18 +87,26 @@ Writes a report to `data/pipeline-reviews/YYYY-MM-DD.md` with ranked apply targe
 
 Typical path from shortlist to interview prep:
 
-```mermaid
-flowchart LR
-    shortlist[Shortlist] --> research["company-research<br/>saves JD + brief"]
-    research --> tailor[Tailor externally]
-    tailor --> feedback[resume-feedback]
-    feedback --> apply[Apply]
-    apply --> prep[interview-prep]
+```
+# Standalone (default)
+shortlist → company-research → resume-feedback → apply → interview-prep
+
+# With Resume-Matcher (integrations.resume_matcher.enabled: true)
+shortlist → company-research → tailor via Resume-Matcher → resume-feedback → apply → interview-prep
 ```
 
-Point `profile.resume_path` at your master resume for fit scoring during search. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
+Point `profile.resume_path` at your master resume for fit scoring during search and for standalone resume feedback. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
+
+When the example template gains new keys (e.g. `integrations.resume_matcher.enabled`), merge them into your existing `data/config.yaml` without overwriting your values:
+
+```bash
+bash scripts/reconcile-config.sh --dry-run   # preview keys to add
+bash scripts/reconcile-config.sh             # apply (creates a timestamped .bak backup)
+```
+
+Requires `pip3 install ruamel.yaml` (preserves YAML comments).
 
 ### Status updates
 
@@ -125,11 +133,15 @@ Trigger phrases: company brief, role brief, `/iago-brief`, `/company-research`. 
 
 ### Resume feedback
 
-Reviews a tailored resume artifact against the job description. It does not rewrite the resume. Artifacts save to `data/resume-feedback/`.
+Reviews your resume against the job description. Does not rewrite the resume. Artifacts save to `data/resume-feedback/`.
 
-> Review my tailored resume for [Company]
+**Standalone (default):** Reviews markdown from `profile.resume_path` (or an override path you provide) against the JD. No Resume-Matcher or JSON required.
 
-Provide the saved JD path (`jd_path` on the tracker row, or user path) and your tailored resume artifact. Trigger phrases: resume feedback, ATS review, `/iago-feedback`, `/resume-feedback`.
+**With Resume-Matcher:** Set `integrations.resume_matcher.enabled: true` in `data/config.yaml`, tailor via [Resume-Matcher](https://github.com/srbhr/Resume-Matcher), then provide the tailored JSON path (or inline JSON) for review.
+
+> Review my resume for [Company]
+
+For a shortlisted role, the JD comes from `jd_path` on the tracker row (or a path you provide). Trigger phrases: resume feedback, ATS review, `/iago-feedback`, `/resume-feedback`.
 
 ### Interview prep
 
@@ -153,7 +165,7 @@ iago/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, run-daily-search.sh
+  scripts/                           # init-data.sh, reconcile-config.sh, run-daily-search.sh
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
@@ -174,7 +186,7 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 | `company-research/` | Role briefs (auto when shortlisted) |
 | `jds/` | Full job descriptions (auto when shortlisted) |
 | `interview-prep/` | Interview prep (auto when applied) |
-| `resume-feedback/` | Tailored resume review artifacts |
+| `resume-feedback/` | Resume feedback artifacts |
 | `logs/` | CLI run logs |
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.

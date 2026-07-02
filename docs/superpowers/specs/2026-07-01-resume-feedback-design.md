@@ -230,3 +230,116 @@ Not required for v1.1 ship; skill defaults to English when absent.
 | Headless script | Only if feedback runs become scheduled/batch |
 | Resume-Matcher hook docs | Document expected JSON shape for handoff ([#3](https://github.com/lachlanmag/iago/issues/3)) |
 | Re-run diff | Compare two feedback artifacts for same role after resume edits |
+
+---
+
+## v1.2: Standalone mode (no Resume-Matcher)
+
+**Status:** Approved 2026-07-01. Approach 1: config flag + prompt placeholders. Default: Resume-Matcher off.
+
+### Goal
+
+Make `resume-feedback` usable without Resume-Matcher or any external tailoring tool. When Resume-Matcher is disabled (the default), the skill reviews markdown from `profile.resume_path` or a user override path. When enabled, behavior matches v1.1 (tailored resume JSON handoff).
+
+### Scope (v1.2)
+
+**In scope:**
+
+- `integrations.resume_matcher.enabled` in `data/config.yaml` (default `false` when absent)
+- Mode-aware input resolution in `SKILL.md`
+- Prompt placeholders for format-specific wording (single `prompt.md`, same report structure)
+- Extended artifact `meta` (`resume_source`, `resume_format`, `resume_matcher_enabled`)
+- README and `company-research` reminder updates for both paths
+
+**Out of scope:**
+
+- Markdown-to-JSON conversion
+- Resume tailoring or rewriting
+- Resume-Matcher hook docs (ROADMAP #12)
+- Tracker `resume_status` automation
+
+### Config
+
+Add to `examples/config.example.yaml`:
+
+```yaml
+integrations:
+  resume_matcher:
+    enabled: false  # true when using Resume-Matcher for tailoring handoff
+```
+
+| Value | Resume input | Default source | Format |
+|-------|--------------|----------------|--------|
+| `false` or absent | Markdown | `profile.resume_path` | User override path or inline paste optional |
+| `true` | Tailored JSON | User-provided path or inline (required) | Pretty-print if minified |
+
+When `enabled: false` and `profile.resume_path` is missing or unreadable, ask once for a resume path or paste.
+
+### Workflow paths
+
+**Standalone (default):**
+
+```
+shortlist → company-research → resume-feedback (master or tailored markdown) → apply → interview-prep
+```
+
+**With Resume-Matcher (`enabled: true`):**
+
+```
+shortlist → company-research → [Resume-Matcher] → resume-feedback (JSON) → apply → interview-prep
+```
+
+### Prompt placeholders
+
+Substitute in `prompt.md` before applying verbatim (in addition to v1.1 placeholders):
+
+| Placeholder | Matcher on | Matcher off |
+|-------------|------------|-------------|
+| `{resume_format}` | `JSON` | `markdown` |
+| `{resume_source_label}` | `Tailored Resume (JSON)` | `Resume (markdown)` |
+| `{parsability_note}` | `note when format cannot be verified from JSON alone` | `note when format cannot be verified from markdown alone` |
+
+Replace hard-coded "JSON" references in the prompt body with these placeholders. Report headings, scoring rubric, and JSON output shape are unchanged.
+
+### Artifact `meta` (v1.2)
+
+```json
+{
+  "meta": {
+    "company": "",
+    "title": "",
+    "reviewed": "YYYY-MM-DD",
+    "output_language": "",
+    "resume_source": "",
+    "resume_format": "markdown",
+    "resume_matcher_enabled": false
+  }
+}
+```
+
+`resume_format` is `markdown` or `json`. `resume_source` is the resolved file path or `inline`.
+
+### Documentation updates (v1.2)
+
+| File | Change |
+|------|--------|
+| `.cursor/skills/resume-feedback/SKILL.md` | Mode-aware input resolution and placeholder substitution |
+| `.cursor/skills/resume-feedback/prompt.md` | Format placeholders |
+| `examples/config.example.yaml` | `integrations.resume_matcher.enabled` |
+| `README.md` | Standalone vs Matcher apply paths |
+| `.cursor/skills/company-research/SKILL.md` | Mode-aware post-brief reminder |
+
+### Testing and validation (v1.2)
+
+- **Standalone:** `enabled: false` (or absent), shortlisted role with `jd_path`, only `profile.resume_path` set; confirm report + artifact with `resume_format: markdown`.
+- **Matcher:** `enabled: true`, tailored JSON path; confirm behavior matches v1.1 and `resume_format: json`.
+- **Override:** Standalone mode with user-provided tailored markdown path; confirm `resume_source` reflects override.
+- **Edge:** Standalone with missing `resume_path`; skill asks once.
+- **Sanitization:** `git status` clean after runs.
+
+### Success criteria (v1.2)
+
+1. With `resume_matcher.enabled: false` (or absent) and only `profile.resume_path` set, `/resume-feedback` for a shortlisted role runs without JSON or Resume-Matcher.
+2. With `enabled: true`, behavior matches v1.1 (JSON required, Matcher-oriented wording).
+3. Same report structure and artifact path in both modes.
+4. README documents both workflow paths.

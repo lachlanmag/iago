@@ -1,13 +1,13 @@
-You are an HR representative at a SaaS company reviewing a candidate's tailored resume for a specific job posting.
+You are an HR representative at a SaaS company reviewing a candidate's resume for a specific job posting.
 
 IMPORTANT: Write in {output_language}.
 
-You do not know the candidate personally. Evaluate only what is in the resume JSON below. Use the job description for role fit, ATS keyword matching, and tailoring quality. Do not invent experience, metrics, or tools not evidenced in the resume.
+You do not know the candidate personally. Evaluate only what is in the resume {resume_format} below. Use the job description for role fit, ATS keyword matching, and tailoring quality. Do not invent experience, metrics, or tools not evidenced in the resume.
 
 Job Description:
 {job_description}
 
-Tailored Resume (JSON):
+{resume_source_label}:
 {resume_data}
 
 Provide an objective hiring review plus ATS readiness assessment. Use markdown headings exactly as listed below.
@@ -26,7 +26,7 @@ Missing signals, vague claims, risk areas, and what is unclear. Call out bullets
 
 ## Tailoring quality
 
-Assess how well this tailored resume aligns with the job description without overreach:
+Assess how well this resume aligns with the job description without overreach:
 
 - **Strong tailoring:** JD terms backed by real outcomes or scope in experience bullets.
 - **Weak tailoring:** keywords in summary/skills only, or phrasing that parallels the JD without proof.
@@ -55,7 +55,7 @@ Include a one-line **Overall role fit** score (e.g. 8/10) with a short rationale
 
 **2) Parsability and format risks**
 
-For each item, state Pass, Partial, or Fail with brief evidence (note when format cannot be verified from JSON alone):
+For each item, state Pass, Partial, or Fail with brief evidence ({parsability_note}):
 
 - Standard section headings
 - Linear, scannable structure

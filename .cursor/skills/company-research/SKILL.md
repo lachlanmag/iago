@@ -122,7 +122,9 @@ In chat:
 
 1. Lead with **Role brief ready** and the company + title.
 2. Render the saved markdown (headings intact).
-3. Note paths for the role brief and saved JD (`jd_path`), then remind to tailor resume and run `resume-feedback` before applying.
+3. Note paths for the role brief and saved JD (`jd_path`), then remind about next steps before applying (read `integrations.resume_matcher.enabled` from `data/config.yaml`, default `false`):
+   - **Matcher off (default):** run `resume-feedback` on master or tailored markdown before applying.
+   - **Matcher on:** tailor via Resume-Matcher, then run `resume-feedback` on the JSON output.
 
 ## Output principles
 

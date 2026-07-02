@@ -14,7 +14,7 @@ Issue numbers link to open tickets. Merged duplicates are noted inline.
 | `update-application` | **Shipped** | [#5](https://github.com/lachlanmag/iago/issues/5) | Pipeline status updates; chains research on shortlist and prep on apply |
 | `company-research` | **Shipped** | [#6](https://github.com/lachlanmag/iago/issues/6) | Role brief from company site + JD (auto on shortlist) |
 | `interview-prep` | **Shipped** | [#7](https://github.com/lachlanmag/iago/issues/7) | Talking points from JD + resume (auto on apply) |
-| `resume-feedback` | **Shipped** | n/a | Tailored resume review vs JD before submit |
+| `resume-feedback` | **Shipped** | n/a | Resume review vs JD before submit (markdown default; optional Resume-Matcher JSON) |
 | `recruiter-follow-up` | Planned | [#8](https://github.com/lachlanmag/iago/issues/8) | Touchpoint logging aligned with `data/recruiters.yaml` |
 
 ---
