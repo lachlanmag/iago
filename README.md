@@ -2,9 +2,9 @@
 
 A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
 
-**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking, pipeline triage and prioritization, role briefs on shortlist, tailored resume review before apply, interview prep on submit.
+**In scope:** job search, deduplication, listing freshness checks, fit scoring, application pipeline tracking, pipeline triage and prioritization, role briefs on shortlist, resume feedback before apply, interview prep on submit.
 
-**Out of scope:** resume tailoring or rewriting, cover letters, PDF export (tailor externally, then run `resume-feedback` for review).
+**Out of scope:** resume tailoring or rewriting, cover letters, PDF export (`resume-feedback` reviews your resume against the JD; it does not rewrite it).
 
 ## Prerequisites
 
@@ -37,10 +37,10 @@ job-search/
     update-application/              # Status updates; chains research + prep
     company-research/                # Role brief (auto on shortlist)
     interview-prep/                  # Talking points (auto on apply)
-    resume-feedback/                 # Tailored resume review before submit
+    resume-feedback/                 # Resume review vs JD before submit
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, run-daily-search.sh
+  scripts/                           # init-data.sh, reconcile-config.sh, run-daily-search.sh
   docs/ROADMAP.md                    # Future work and gaps
 ```
 
@@ -59,7 +59,7 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 | `company-research/` | Role briefs (auto when shortlisted) |
 | `jds/` | Full job descriptions (auto when shortlisted) |
 | `interview-prep/` | Interview prep (auto when applied) |
-| `resume-feedback/` | Tailored resume review artifacts |
+| `resume-feedback/` | Resume feedback artifacts |
 | `logs/` | CLI run logs |
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
@@ -102,12 +102,25 @@ Writes a report to `data/pipeline-reviews/YYYY-MM-DD.md` with ranked apply targe
 Typical path from shortlist to interview prep:
 
 ```
-shortlist → company-research (saves JD + brief) → tailor externally → resume-feedback → apply → interview-prep
+# Standalone (default)
+shortlist → company-research → resume-feedback → apply → interview-prep
+
+# With Resume-Matcher (integrations.resume_matcher.enabled: true)
+shortlist → company-research → tailor via Resume-Matcher → resume-feedback → apply → interview-prep
 ```
 
-Point `profile.resume_path` at your master resume for fit scoring during search. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
+Point `profile.resume_path` at your master resume for fit scoring during search and for standalone resume feedback. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
+
+When the example template gains new keys (e.g. `integrations.resume_matcher.enabled`), merge them into your existing `data/config.yaml` without overwriting your values:
+
+```bash
+bash scripts/reconcile-config.sh --dry-run   # preview keys to add
+bash scripts/reconcile-config.sh             # apply (creates a timestamped .bak backup)
+```
+
+Requires `pip3 install ruamel.yaml` (preserves YAML comments).
 
 ### Updating applications
 
@@ -132,11 +145,15 @@ Trigger phrases: company brief, role brief, `/company-research`. Runs automatica
 
 ### Resume feedback (before apply)
 
-Reviews a **tailored resume JSON** against the job description. Does not rewrite the resume. Artifacts save to `data/resume-feedback/`.
+Reviews your resume against the job description. Does not rewrite the resume. Artifacts save to `data/resume-feedback/`.
 
-> Review my tailored resume for [Company]
+**Standalone (default):** Reviews markdown from `profile.resume_path` (or an override path you provide) against the JD. No Resume-Matcher or JSON required.
 
-Provide the saved JD path (`jd_path` on the tracker row, or user path) and tailored JSON (e.g. from [Resume-Matcher](https://github.com/srbhr/Resume-Matcher)). Trigger phrases: resume feedback, ATS review, `/resume-feedback`.
+**With Resume-Matcher:** Set `integrations.resume_matcher.enabled: true` in `data/config.yaml`, tailor via [Resume-Matcher](https://github.com/srbhr/Resume-Matcher), then provide the tailored JSON path (or inline JSON) for review.
+
+> Review my resume for [Company]
+
+For a shortlisted role, the JD comes from `jd_path` on the tracker row (or a path you provide). Trigger phrases: resume feedback, ATS review, `/resume-feedback`.
 
 ### Interview prep (on apply)
 

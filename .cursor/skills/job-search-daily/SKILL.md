@@ -256,4 +256,4 @@ launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
 
 ## Out of scope
 
-This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export stay external (use whatever you prefer after shortlisting). After tailoring, use `resume-feedback` for review, then apply via `update-application`.
+This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export stay external when you use them. Run `resume-feedback` to review your resume against the JD before apply (markdown from `profile.resume_path` by default), then apply via `update-application`.

@@ -1,10 +1,11 @@
 ---
 name: resume-feedback
 description: >-
-  Review a tailored resume JSON against a job description for role fit, ATS
-  readiness, and hiring recommendation. Use when the user asks for resume
-  feedback, ATS review, tailoring quality check, hiring review of a tailored
-  resume, or runs /resume-feedback.
+  Review a resume against a job description for role fit, ATS readiness, and
+  hiring recommendation. Uses standalone markdown from profile.resume_path by
+  default, or optional tailored Resume-Matcher JSON when enabled. Use when the
+  user asks for resume feedback, ATS review, tailoring quality check, hiring
+  review, or runs /resume-feedback.
 disable-model-invocation: true
 ---
 
@@ -12,10 +13,11 @@ disable-model-invocation: true
 
 ## When to use
 
-- User wants HR-style feedback on a **tailored** resume for a specific role
+- User wants HR-style feedback on a resume for a specific role (master or tailored)
 - User asks for ATS readiness, keyword coverage, or tailoring quality review
-- User says "review my tailored resume", "resume feedback", or `/resume-feedback`
-- After tailoring (e.g. Resume-Matcher) before submitting an application
+- User says "review my resume", "resume feedback", or `/resume-feedback`
+- After `company-research` on a shortlisted role, before applying
+- After tailoring with Resume-Matcher (when `integrations.resume_matcher.enabled: true`)
 
 **Not this skill:** master resume fit during search (use `job-search-daily` / `job-search-pipeline-review`), cover letters, or PDF export.
 
@@ -23,10 +25,11 @@ disable-model-invocation: true
 
 | File | Purpose |
 |------|---------|
-| `data/config.yaml` | Optional `profile.output_language` (default review language) |
+| `data/config.yaml` | `profile.output_language`, `profile.resume_path`, `integrations.resume_matcher.enabled` (default `false`) |
 | `data/applications.yaml` | Optional: resolve company/title and JD path from a shortlisted role |
+| `profile.resume_path` in config | Default resume source in standalone mode (read only; do not commit) |
 | [prompt.md](prompt.md) | **Mandatory review prompt** (apply verbatim) |
-| User-provided paths | Job description text/markdown and tailored resume JSON (local; not in repo) |
+| User-provided paths | Job description text/markdown; resume markdown or tailored JSON depending on mode (local; not in repo) |
 
 Repo root is the Cursor workspace. Paths below are relative to repo root.
 
@@ -37,28 +40,46 @@ Collect before running the review:
 | Placeholder | Source |
 |-------------|--------|
 | `{job_description}` | Full JD text: `jd_path` on tracker row, user paste, or local file path |
-| `{resume_data}` | Tailored resume as JSON string (file path or inline JSON) |
+| `{resume_data}` | Resume content string (see mode table below) |
 | `{output_language}` | User request, else `profile.output_language` in config, else `English` |
 
-If any input is missing, ask once with concrete options (e.g. company from tracker, path to JD file, path to resume JSON). Do not invent resume content or JD requirements.
+**Mode-aware resume resolution:**
 
-**Resume JSON:** Use the file as provided. Do not convert from markdown unless the user asks. Pretty-print when substituting into the prompt if the file is minified.
+| Config | Resume source | Format |
+|--------|---------------|--------|
+| `integrations.resume_matcher.enabled: true` | User path or inline JSON (required) | JSON |
+| `false` or absent | `profile.resume_path` default; user override path or inline | markdown |
 
-**Tracker shortcut:** If the user names a shortlisted role, read `data/applications.yaml` for company/title and use `jd_path` when set (from `company-research`). Still require tailored resume JSON (from path the user provides unless given inline).
+If any input is missing, ask once with concrete options (e.g. company from tracker, path to JD file, path to resume file or paste). Do not invent resume content or JD requirements.
+
+**Placeholder substitution** (set before applying [prompt.md](prompt.md)):
+
+| Placeholder | Matcher on | Matcher off |
+|-------------|------------|-------------|
+| `{resume_format}` | JSON | markdown |
+| `{resume_source_label}` | Tailored Resume (JSON) | Resume (markdown) |
+| `{parsability_note}` | note when format cannot be verified from JSON alone | note when format cannot be verified from markdown alone |
+
+**Resume JSON (matcher on):** Use the file as provided. Do not convert from markdown unless the user asks. Pretty-print when substituting into the prompt if the file is minified.
+
+**Resume markdown (matcher off):** Load from `profile.resume_path` unless the user supplies a path or inline paste. Do not convert to JSON.
+
+**Tracker shortcut:** If the user names a shortlisted role, read `data/applications.yaml` for company/title and use `jd_path` when set (from `company-research`). Resolve resume per mode table above.
 
 ## Workflow
 
 ### 1. Resolve inputs
 
-- Read `data/config.yaml` when present for `output_language`.
+- Read `data/config.yaml` when present for `output_language` and `integrations.resume_matcher.enabled` (default `false`).
 - Load `{job_description}` from `jd_path` on the tracker row when the user names a role; otherwise from user-supplied path or message.
-- Load `{resume_data}` from user-supplied path or message.
-- Record metadata for the report filename: `company`, `title`, `date` (today, `YYYY-MM-DD`).
+- **Matcher on:** load `{resume_data}` from user-supplied path or inline JSON; pretty-print if minified. Ask once if missing.
+- **Matcher off:** load `{resume_data}` from `profile.resume_path` unless the user overrides with path or inline markdown. Ask once if missing or unreadable.
+- Record metadata for the report filename and artifact: `company`, `title`, `date` (today, `YYYY-MM-DD`), `resume_source` (resolved file path or `inline`), `resume_format` (`markdown` or `json`), `resume_matcher_enabled` (boolean).
 
 ### 2. Run the review
 
 1. Open [prompt.md](prompt.md).
-2. Substitute `{output_language}`, `{job_description}`, and `{resume_data}`.
+2. Substitute `{output_language}`, `{job_description}`, `{resume_data}`, `{resume_format}`, `{resume_source_label}`, and `{parsability_note}`.
 3. Apply the prompt **verbatim**. Do not shorten sections or change the required JSON shape.
 
 ### 3. Validate output
@@ -86,14 +107,17 @@ JSON file shape:
     "company": "",
     "title": "",
     "reviewed": "YYYY-MM-DD",
-    "output_language": ""
+    "output_language": "",
+    "resume_source": "",
+    "resume_format": "markdown",
+    "resume_matcher_enabled": false
   },
   "report_markdown": "",
   "questions": []
 }
 ```
 
-`meta` wraps the review prompt output for local tracking. Do not commit personal data; `data/` is gitignored.
+`resume_format` is `markdown` or `json`. `resume_source` is the resolved file path or `inline`. `meta` wraps the review prompt output for local tracking. Do not commit personal data; `data/` is gitignored.
 
 ### 5. Present to user
 
@@ -105,7 +129,7 @@ In chat:
 
 ### 6. Optional follow-up
 
-If the user answers clarification questions, offer to re-run feedback on an updated resume JSON or to update `resume_status` in `data/applications.yaml` when they confirm apply-ready.
+If the user answers clarification questions, offer to re-run feedback on an updated resume (path or paste) or to update `resume_status` in `data/applications.yaml` when they confirm apply-ready.
 
 ## Output principles
 
@@ -116,17 +140,19 @@ If the user answers clarification questions, offer to re-run feedback on an upda
 
 ## Manual commands
 
-**Run in chat:**
+**Standalone (default; uses `profile.resume_path`):**
 
 > /resume-feedback
 
-> Review my tailored resume for [Company]. JD at [path], resume JSON at [path]
+> Resume feedback for my shortlisted [Company] role
 
-> ATS feedback on this resume for the [title] role at [company]
+> Review my resume for [Company]. JD at [path]
 
-**With tracker context:**
+**With Resume-Matcher (`integrations.resume_matcher.enabled: true`):**
 
-> Resume feedback for my shortlisted [Company] role. JD: [path], tailored resume: [path]
+> Resume feedback for [Company]. JD at [path], tailored resume JSON at [path]
+
+> ATS feedback on this tailored resume for the [title] role at [company]
 
 ## Out of scope
 
