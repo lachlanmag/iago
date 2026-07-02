@@ -1,9 +1,11 @@
 ---
-name: job-search-daily
+name: iago-daily
 description: >-
   Run the daily PM/PO/BA job search, surface new listings, and update the
   application tracker. Use when the user says daily job search, job hunt, find
-  new jobs, update applications, or runs /job-search.
+  new jobs, run the job search, run the job search for today, check for jobs
+  today, search for new PM roles, what's new on the boards, update the tracker
+  from today's search, or runs /iago or /iago-daily.
 ---
 
 # Daily job search
@@ -12,8 +14,10 @@ description: >-
 
 - User asks for a daily/weekly job search
 - User wants new PM, Product Owner, or BA roles
-- User asks to update or review their application tracker
+- User says "run the job search for today", "check for jobs today", or "what's new on the boards"
+- User asks to update the tracker from today's search (add new `discovered` rows; not status changes)
 - Cursor Automation or `/loop` triggers this skill
+- User runs `/iago` or `/iago-daily`
 
 ## Files (always read first)
 
@@ -196,7 +200,7 @@ Use `---` between major sections.
 End with:
 
 - Top 3 roles to apply to this week
-- If `discovered` count is high (roughly 5+), suggest running `job-search-pipeline-review` to triage and pick apply targets for the week
+- If `discovered` count is high (roughly 5+), suggest running `iago-pipeline-review` to triage and pick apply targets for the week
 - Reminder: shortlisting via `update-application` or pipeline review saves the JD and runs `company-research` automatically
 - Reminder: use `update-application` to set `applied` (chains `interview-prep` automatically) or shortlist via pipeline review (chains `company-research`)
 
@@ -241,9 +245,9 @@ Requires `cursor agent login` once. Logs: `data/logs/latest.log`
 
 ```bash
 chmod +x scripts/run-daily-search.sh scripts/init-data.sh
-# Edit scripts/com.example.job-search-daily.plist: replace __REPO_ROOT__
-cp scripts/com.example.job-search-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
+# Edit scripts/com.example.iago-daily.plist: replace __REPO_ROOT__
+cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
 ```
 
 **While Cursor is open:**
