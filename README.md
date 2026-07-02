@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Iago" width="96" />
+</p>
+
 # Iago
 
 A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
@@ -38,9 +42,12 @@ iago/
     company-research/              # Role brief; /iago-brief
     interview-prep/                # Talking points; /iago-interview
     resume-feedback/               # Resume review; /iago-feedback
+  assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
   scripts/                           # init-data.sh, run-daily-search.sh
+  favicon.ico                        # Browser favicon (16/32/48)
+  favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
 ```
 
