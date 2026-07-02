@@ -168,8 +168,8 @@ After merging the rebrand PR, complete these manual steps outside the repo:
 1. Rename GitHub repo to `iago` on github.com
 2. `git remote set-url origin git@github.com:lachlanmag/iago.git`
 3. Optionally rename your local clone directory to `iago`
-4. If you had a scheduled daily search before the rebrand, unload that LaunchAgent
-5. Remove the old plist from `~/Library/LaunchAgents/`
+4. If you had a scheduled daily search before the rebrand: `launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist`
+5. Remove `~/Library/LaunchAgents/com.example.job-search-daily.plist`
 6. Edit `scripts/com.example.iago-daily.plist`: set `__REPO_ROOT__` to new clone path
 7. `cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/`
 8. `launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist`

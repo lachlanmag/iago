@@ -160,7 +160,7 @@ Each skill's YAML `description` and "When to use" section must list both slash a
 
 1. `README.md`
 2. `docs/ROADMAP.md`
-3. `docs/superpowers/specs/2026-06-26-job-search-workflow-design.md`
+3. `docs/superpowers/specs/2026-06-26-iago-workflow-design.md`
 4. `docs/superpowers/specs/2026-07-01-update-application-design.md`
 5. `docs/superpowers/specs/2026-07-01-company-research-design.md`
 6. `docs/superpowers/specs/2026-07-01-interview-prep-design.md`
