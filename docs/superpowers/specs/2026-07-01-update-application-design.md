@@ -22,8 +22,8 @@ No personal tracker data or artifacts are committed to git.
 
 ### Out of scope (v1.1)
 
-- Discovering new roles (`job-search-daily`)
-- Pipeline ranking (`job-search-pipeline-review`, though pipeline review may call this pattern when promoting rows)
+- Discovering new roles (`iago-daily`)
+- Pipeline ranking (`iago-pipeline-review`, though pipeline review may call this pattern when promoting rows)
 - Resume tailoring or `resume-feedback`
 - Setting `resume_status: ready` after feedback (ROADMAP Later #16)
 - Headless CLI script
@@ -31,8 +31,8 @@ No personal tracker data or artifacts are committed to git.
 ### Relationship to existing workflow
 
 ```
-job-search-daily           → discover + score
-job-search-pipeline-review → triage; may promote to shortlisted + chain company-research
+iago-daily           → discover + score
+iago-pipeline-review → triage; may promote to shortlisted + chain company-research
 update-application         → shortlist (chains company-research)
 [external tailoring]       → tailored resume JSON
 resume-feedback            → review before apply
@@ -44,7 +44,7 @@ update-application         → apply (chains interview-prep)
 **Approach:** Single skill file only (no `prompt.md`). Workflow in `SKILL.md`; generation delegated to chained skills.
 
 ```
-job-search/
+iago/
   .cursor/skills/update-application/
     SKILL.md
   docs/superpowers/specs/
@@ -123,8 +123,8 @@ Summarize status change, artifact paths, and suggested next action.
 |------|--------|--------|
 | `README.md` | Apply workflow, chaining table | Done |
 | `docs/ROADMAP.md` | Mark shipped | Done |
-| `.cursor/skills/job-search-daily/SKILL.md` | Point manual commands here | Done |
-| `.cursor/skills/job-search-pipeline-review/SKILL.md` | Chain on shortlist promotion | Done |
+| `.cursor/skills/iago-daily/SKILL.md` | Point manual commands here | Done |
+| `.cursor/skills/iago-pipeline-review/SKILL.md` | Chain on shortlist promotion | Done |
 
 ## Testing and validation
 

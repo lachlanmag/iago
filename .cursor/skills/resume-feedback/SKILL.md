@@ -5,7 +5,9 @@ description: >-
   hiring recommendation. Uses standalone markdown from profile.resume_path by
   default, or optional tailored Resume-Matcher JSON when enabled. Use when the
   user asks for resume feedback, ATS review, tailoring quality check, hiring
-  review, or runs /resume-feedback.
+  review, review my resume, review my tailored resume, ATS review for [Company],
+  check my resume against the JD, tailoring quality check, is this resume ready
+  to submit, or runs /iago-feedback or /resume-feedback.
 disable-model-invocation: true
 ---
 
@@ -15,11 +17,11 @@ disable-model-invocation: true
 
 - User wants HR-style feedback on a resume for a specific role (master or tailored)
 - User asks for ATS readiness, keyword coverage, or tailoring quality review
-- User says "review my resume", "resume feedback", or `/resume-feedback`
+- User says "review my resume", "review my tailored resume", "resume feedback", "ATS review for [Company]", "check my resume against the JD", "tailoring quality check", "is this resume ready to submit", `/iago-feedback`, or `/resume-feedback`
 - After `company-research` on a shortlisted role, before applying
 - After tailoring with Resume-Matcher (when `integrations.resume_matcher.enabled: true`)
 
-**Not this skill:** master resume fit during search (use `job-search-daily` / `job-search-pipeline-review`), cover letters, or PDF export.
+**Not this skill:** master resume fit during search (use `iago-daily` / `iago-pipeline-review`), cover letters, or PDF export.
 
 ## Files (read as needed)
 

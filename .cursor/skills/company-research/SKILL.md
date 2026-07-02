@@ -4,7 +4,10 @@ description: >-
   Produce a role brief for a shortlisted job from the listing, company site, and
   tracker context. Runs automatically when a role is promoted to shortlisted
   (via update-application or pipeline-review). Use when the user shortlists a
-  role, asks for a company brief, role brief, or runs /company-research.
+  role, asks for a company brief, role brief, research [Company], company brief
+  for [Company], role brief for [Company], brief on this role, tell me about
+  [Company] for this role, prep a brief before I apply, or runs /iago-brief or
+  /company-research.
 ---
 
 # Company research (role brief)
@@ -13,9 +16,9 @@ description: >-
 
 - **Automatic:** Immediately after a role's status is set to `shortlisted` in `data/applications.yaml` (same session; do not ask permission to run).
 - User asks for a company or role brief before tailoring or applying.
-- User says "research [Company]", "brief on this role", or `/company-research`.
+- User says "research [Company]", "company brief for [Company]", "role brief for [Company]", "brief on this role", "tell me about [Company] for this role", "prep a brief before I apply", `/iago-brief`, or `/company-research`.
 
-**Not this skill:** interview talking points after apply (use `interview-prep`), resume tailoring feedback (use `resume-feedback`), new job search (use `job-search-daily`).
+**Not this skill:** interview talking points after apply (use `interview-prep`), resume tailoring feedback (use `resume-feedback`), new job search (use `iago-daily`).
 
 ## Files (read as needed)
 
@@ -141,6 +144,6 @@ In chat:
 
 ## Out of scope
 
-- Updating status to `shortlisted` (caller: `update-application` or `job-search-pipeline-review`)
+- Updating status to `shortlisted` (caller: `update-application` or `iago-pipeline-review`)
 - Resume tailoring or ATS review
 - Interview prep (use `interview-prep` after apply)

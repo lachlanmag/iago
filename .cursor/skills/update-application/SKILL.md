@@ -4,7 +4,10 @@ description: >-
   Update pipeline status and dates in applications.yaml. Automatically runs
   company-research when a role is shortlisted and interview-prep when an
   application is submitted. Use when the user shortlists, applies, rejects,
-  withdraws, moves to interview, or updates tracker status.
+  withdraws, moves to interview, updates tracker status, says shortlist
+  [Company], set [Company] to applied, mark [Company] as rejected, withdraw
+  [Company], move [Company] to interview, update my tracker, I applied to
+  [Company], reject [Company], or runs /iago-update or /update-application.
 ---
 
 # Update application
@@ -12,7 +15,8 @@ description: >-
 ## When to use
 
 - User shortlists, applies, rejects, withdraws, or changes interview stage
-- User says "set [Company] to applied", "shortlist [Company]", or "update my tracker"
+- User says "set [Company] to applied", "shortlist [Company]", "mark [Company] as rejected", "withdraw [Company]", "move [Company] to interview", "update my tracker", "I applied to [Company]", or "reject [Company]"
+- User runs `/iago-update` or `/update-application`
 - Any workflow that changes `status` in `data/applications.yaml`
 
 **Orchestrator:** This skill writes the tracker, then **immediately** invokes chained skills in the same session (no separate user prompt).
@@ -98,6 +102,6 @@ Summarize:
 
 ## Out of scope
 
-- Discovering new roles (`job-search-daily`)
-- Pipeline ranking (`job-search-pipeline-review`), but pipeline-review should chain `company-research` when it promotes rows to `shortlisted` with user confirmation
+- Discovering new roles (`iago-daily`)
+- Pipeline ranking (`iago-pipeline-review`), but pipeline-review should chain `company-research` when it promotes rows to `shortlisted` with user confirmation
 - Resume tailoring or feedback

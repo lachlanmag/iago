@@ -22,7 +22,7 @@ No personal resume content, job descriptions, or feedback artifacts are committe
 ### Out of scope (v1.1)
 
 - Resume tailoring, rewriting, or PDF export (feedback only unless user asks for edits in a separate turn)
-- Master resume fit scoring during search (remains `job-search-daily` / `job-search-pipeline-review`)
+- Master resume fit scoring during search (remains `iago-daily` / `iago-pipeline-review`)
 - Cover letter review
 - Automatic tracker updates (`resume_status`, status changes) without user confirmation
 - Headless CLI script (chat-triggered only, like pipeline review)
@@ -32,8 +32,8 @@ No personal resume content, job descriptions, or feedback artifacts are committe
 ### Relationship to existing workflow
 
 ```
-job-search-daily           → discover + score vs master resume
-job-search-pipeline-review → triage + prioritize shortlist
+iago-daily           → discover + score vs master resume
+iago-pipeline-review → triage + prioritize shortlist
 update-application         → shortlist (chains company-research)
 [external tailoring]       → tailored resume JSON (user's tool, outside repo)
 resume-feedback            → review tailored JSON vs JD before apply
@@ -44,10 +44,10 @@ Resume tooling stays outside the repo. The skill accepts user-provided paths to 
 
 ## Architecture
 
-**Approach:** Single skill + separate prompt file (mirrors `job-search-pipeline-review` pattern: workflow in `SKILL.md`, no scripts).
+**Approach:** Single skill + separate prompt file (mirrors `iago-pipeline-review` pattern: workflow in `SKILL.md`, no scripts).
 
 ```
-job-search/
+iago/
   .cursor/skills/resume-feedback/
     SKILL.md              # Workflow, inputs, validation, artifact save
     prompt.md             # Mandatory review prompt (substitute placeholders)
@@ -205,7 +205,7 @@ Not required for v1.1 ship; skill defaults to English when absent.
 | `docs/ROADMAP.md` | Mark `resume-feedback` as shipped; note in apply workflow | Done |
 | `scripts/init-data.sh` | `mkdir -p "$DATA/resume-feedback"` | Done |
 | `examples/config.example.yaml` | `profile.output_language` | Done |
-| `docs/superpowers/specs/2026-06-26-job-search-workflow-design.md` | Cross-link shipped application workflow skills | Done |
+| `docs/superpowers/specs/2026-06-26-iago-workflow-design.md` | Cross-link shipped application workflow skills | Done |
 
 ## Testing and validation
 
@@ -228,7 +228,7 @@ Not required for v1.1 ship; skill defaults to English when absent.
 |------|-------|
 | `update-application` integration | Set `resume_status: ready` after user confirms apply-ready (tracked in ROADMAP Later #16) |
 | Headless script | Only if feedback runs become scheduled/batch |
-| Resume-Matcher hook docs | Document expected JSON shape for handoff ([#3](https://github.com/lachlanmag/job-search/issues/3)) |
+| Resume-Matcher hook docs | Document expected JSON shape for handoff ([#3](https://github.com/lachlanmag/iago/issues/3)) |
 | Re-run diff | Compare two feedback artifacts for same role after resume edits |
 
 ---

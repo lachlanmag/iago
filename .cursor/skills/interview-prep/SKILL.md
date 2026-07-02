@@ -4,7 +4,10 @@ description: >-
   Build interview talking points, STAR stories, and questions to ask from the JD,
   resume, and any company brief. Runs automatically when an application is
   submitted (status applied via update-application). Use when the user applies,
-  asks for interview prep, talking points, or runs /interview-prep.
+  asks for interview prep, talking points, interview prep for [Company], talking
+  points for [role], help me prep for [Company] interview, STAR stories for
+  [Company], questions to ask [Company], or runs /iago-interview or
+  /interview-prep.
 ---
 
 # Interview prep
@@ -13,7 +16,7 @@ description: >-
 
 - **Automatic:** Immediately after a role's status is set to `applied` in `data/applications.yaml` (same session; do not ask permission to run).
 - User moves to `interview` status and asks for refreshed prep.
-- User says "interview prep for [Company]", "talking points for [role]", or `/interview-prep`.
+- User says "interview prep for [Company]", "talking points for [role]", "help me prep for [Company] interview", "STAR stories for [Company]", "questions to ask [Company]", `/iago-interview`, or `/interview-prep`.
 
 **Not this skill:** pre-apply role brief (use `company-research`), resume feedback (use `resume-feedback`), new job search.
 

@@ -42,7 +42,7 @@ interview-prep                       → uses jd_path + optional brief
 **Approach:** Single skill + separate prompt file (same pattern as `resume-feedback`).
 
 ```
-job-search/
+iago/
   .cursor/skills/company-research/
     SKILL.md
     prompt.md

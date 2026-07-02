@@ -1,4 +1,4 @@
-# Job Search Cursor Workflow: Design
+# Job Search Cursor Workflow (original v1 design; now Iago): Design
 
 ## Goal
 
@@ -10,7 +10,7 @@ No personal data, tracker history, or resume content is committed to git.
 
 ### In scope (v1)
 
-- **`job-search-daily` skill**: search, dedup, listing freshness, QA gate, fit scoring, tracker updates, daily report
+- **`iago-daily` skill**: search, dedup, listing freshness, QA gate, fit scoring, tracker updates, daily report
 - **`examples/`**: sanitized templates for `config.yaml`, `applications.yaml`, `seen-jobs.yaml`, `recruiters.yaml`
 - **Gitignored `data/`**: all live/personal state (Resume-Matcher pattern)
 - **`scripts/run-daily-search.sh`**: headless daily run via Cursor Agent CLI
@@ -34,8 +34,8 @@ Job sourcing and application tracking are independent of resume tooling. The mai
 **Approach:** Single skill + flat repo (mirrors the maintainer's working Cursor workflow, adapted for publication).
 
 ```
-job-search/
-  .cursor/skills/job-search-daily/SKILL.md
+iago/
+  .cursor/skills/iago-daily/SKILL.md
   examples/
     config.example.yaml
     applications.example.yaml
@@ -46,7 +46,7 @@ job-search/
   scripts/
     run-daily-search.sh
     init-data.sh           # copy examples → data/
-    com.example.job-search-daily.plist
+    com.example.iago-daily.plist
   docs/
     ROADMAP.md
   README.md
@@ -123,12 +123,12 @@ Recruiter outreach tracker with touchpoint history.
 
 ## Workflow behavior
 
-Port the maintainer's `job-search-daily` skill with these adaptations:
+Port the maintainer's `iago-daily` skill with these adaptations:
 
 1. **Paths**: all reads/writes use `data/` at repo root (no Obsidian vault paths).
 2. **Profile**: `config.yaml` → `profile.resume_path` for fit scoring (local file only).
 3. **No resume tooling in-repo**: after shortlisting, skill suggests saving the JD to a user-chosen path; no in-repo tailoring step.
-4. **Timezone**: script defaults to `Australia/Brisbane`; override via `JOB_SEARCH_TZ`.
+4. **Timezone**: script defaults to `Australia/Brisbane`; override via `IAGO_TZ`.
 5. **Core loop unchanged:**
    - Load state
    - Search sources in `search_sources.order` (skip `excluded_sources`)
@@ -156,12 +156,12 @@ Port the maintainer's `job-search-daily` skill with these adaptations:
 
 ## Roadmap (`docs/ROADMAP.md`)
 
-Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [apply workflow](../../../README.md#apply-workflow) in README). Design specs: [update-application](2026-07-01-update-application-design.md), [company-research](2026-07-01-company-research-design.md), [interview-prep](2026-07-01-interview-prep-design.md), [resume-feedback](2026-07-01-resume-feedback-design.md).
+Structured backlog for v1+. Shipped since initial release: `update-application`, `company-research`, `interview-prep`, `resume-feedback` (see [application workflow](../../../README.md#application-workflow) in README). Design specs: [update-application](2026-07-01-update-application-design.md), [company-research](2026-07-01-company-research-design.md), [interview-prep](2026-07-01-interview-prep-design.md), [resume-feedback](2026-07-01-resume-feedback-design.md).
 
 | Area | Examples |
 |------|----------|
-| **Integrations** | Obsidian vault sync layer; Resume-Matcher hook docs ([#3](https://github.com/lachlanmag/job-search/issues/3)) |
-| **Skills** | `job-search-setup`, `recruiter-follow-up` |
+| **Integrations** | Obsidian vault sync layer; Resume-Matcher hook docs ([#3](https://github.com/lachlanmag/iago/issues/3)) |
+| **Skills** | `iago-setup`, `recruiter-follow-up` |
 | **Config** | Multi-region presets; community source lists |
 | **Automation** | GitHub Action wrapper; notification webhooks |
 | **Data** | CSV export; SQLite if YAML outgrows flat files |

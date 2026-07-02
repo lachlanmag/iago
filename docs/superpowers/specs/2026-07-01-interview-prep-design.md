@@ -37,7 +37,7 @@ interview-prep     → data/interview-prep/ + interview_prep on row
 **Approach:** Single skill + separate prompt file.
 
 ```
-job-search/
+iago/
   .cursor/skills/interview-prep/
     SKILL.md
     prompt.md
