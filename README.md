@@ -1,4 +1,4 @@
-# Job Search (Cursor workflow)
+# Iago
 
 A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
 
@@ -15,8 +15,8 @@ A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. 
 ## Quick start
 
 ```bash
-git clone git@github.com:lachlanmag/job-search.git
-cd job-search
+git clone git@github.com:lachlanmag/iago.git
+cd iago
 bash scripts/init-data.sh
 ```
 
@@ -30,14 +30,14 @@ bash scripts/init-data.sh
 ## Repository layout
 
 ```
-job-search/
+iago/
   .cursor/skills/
-    job-search-daily/                # Daily search workflow
-    job-search-pipeline-review/      # Pipeline triage and prioritization
-    update-application/              # Status updates; chains research + prep
-    company-research/                # Role brief (auto on shortlist)
-    interview-prep/                  # Talking points (auto on apply)
-    resume-feedback/                 # Tailored resume review before submit
+    iago-daily/                    # Daily search; /iago, /iago-daily
+    iago-pipeline-review/          # Pipeline triage; /iago-pipeline
+    update-application/            # Tracker updates; /iago-update
+    company-research/              # Role brief; /iago-brief
+    interview-prep/                # Talking points; /iago-interview
+    resume-feedback/               # Resume review; /iago-feedback
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
   scripts/                           # init-data.sh, run-daily-search.sh
@@ -70,6 +70,8 @@ Nothing under `data/` is committed. Run `git status` after a daily search or pip
 
 > Run the daily job search
 
+Trigger phrases: daily job search, job hunt, find new jobs, `/iago`, `/iago-daily`.
+
 **Headless (Cursor Agent CLI):**
 
 ```bash
@@ -82,12 +84,12 @@ Logs: `data/logs/latest.log`
 
 ```bash
 chmod +x scripts/*.sh
-# Replace __REPO_ROOT__ in scripts/com.example.job-search-daily.plist with your clone path
-cp scripts/com.example.job-search-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.job-search-daily.plist
+# Replace __REPO_ROOT__ in scripts/com.example.iago-daily.plist with your clone path
+cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
 ```
 
-Override run timezone: `JOB_SEARCH_TZ=Australia/Sydney bash scripts/run-daily-search.sh`
+Override run timezone: `IAGO_TZ=Australia/Sydney bash scripts/run-daily-search.sh`
 
 ## Reviewing your pipeline
 
@@ -95,7 +97,7 @@ After daily searches build up `discovered` roles, triage and prioritize without 
 
 > Review my pipeline and tell me what to prioritize
 
-Writes a report to `data/pipeline-reviews/YYYY-MM-DD.md` with ranked apply targets, shortlist promotions, and listing verification. Trigger phrases: pipeline review, prioritize applications, `/pipeline-review`.
+Writes a report to `data/pipeline-reviews/YYYY-MM-DD.md` with ranked apply targets, shortlist promotions, and listing verification. Trigger phrases: pipeline review, prioritize applications, `/iago-pipeline`, `/pipeline-review`.
 
 ## Apply workflow
 
@@ -122,13 +124,15 @@ Pipeline review also runs `company-research` when you confirm a `discovered` →
 
 Status values: `discovered`, `shortlisted`, `applied`, `interview`, `rejected`, `withdrawn`, `offer`, `closed`.
 
+Trigger phrases: shortlist [Company], set [Company] to applied, update my tracker, `/iago-update`, `/update-application`.
+
 ### Company research (on shortlist)
 
 Produces a role brief under `data/company-research/`, saves the full JD under `data/jds/`, and sets `company_research` and `jd_path` on the tracker row.
 
 > Research [Company] for this role
 
-Trigger phrases: company brief, role brief, `/company-research`. Runs automatically when you shortlist via `update-application` or pipeline review.
+Trigger phrases: company brief, role brief, `/iago-brief`, `/company-research`. Runs automatically when you shortlist via `update-application` or pipeline review.
 
 ### Resume feedback (before apply)
 
@@ -136,7 +140,7 @@ Reviews a **tailored resume JSON** against the job description. Does not rewrite
 
 > Review my tailored resume for [Company]
 
-Provide the saved JD path (`jd_path` on the tracker row, or user path) and tailored JSON (e.g. from [Resume-Matcher](https://github.com/srbhr/Resume-Matcher)). Trigger phrases: resume feedback, ATS review, `/resume-feedback`.
+Provide the saved JD path (`jd_path` on the tracker row, or user path) and tailored JSON (e.g. from [Resume-Matcher](https://github.com/srbhr/Resume-Matcher)). Trigger phrases: resume feedback, ATS review, `/iago-feedback`, `/resume-feedback`.
 
 ### Interview prep (on apply)
 
@@ -144,11 +148,25 @@ Produces talking points under `data/interview-prep/` and sets `interview_prep` o
 
 > Interview prep for [Company]
 
-Trigger phrases: talking points, `/interview-prep`. Runs automatically when you set status to `applied` via `update-application`.
+Trigger phrases: talking points, `/iago-interview`, `/interview-prep`. Runs automatically when you set status to `applied` via `update-application`.
 
 ## Roadmap
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for planned skills, Obsidian compatibility, regional presets, and other expansion ideas.
+
+## Post-merge checklist (repo rename)
+
+After merging the rebrand PR, complete these manual steps outside the repo:
+
+1. Rename GitHub repo to `iago` on github.com
+2. `git remote set-url origin git@github.com:lachlanmag/iago.git`
+3. Optionally rename your local clone directory to `iago`
+4. If you had a scheduled daily search before the rebrand, unload that LaunchAgent
+5. Remove the old plist from `~/Library/LaunchAgents/`
+6. Edit `scripts/com.example.iago-daily.plist`: set `__REPO_ROOT__` to new clone path
+7. `cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/`
+8. `launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist`
+9. Re-open repo in Cursor from new folder path
 
 ## License
 
