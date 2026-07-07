@@ -98,6 +98,8 @@ deduplication:
     title: lowercase, strip seniority noise only when comparing duplicates
     location: map to buckets (local_metro, remote, other_city, other)
   canonical_url_priority:
+    # Prefer stronger direct listings first, but if none are available,
+    # keep the best verified live listing page even when it is an aggregator.
     - company_ats
     - gov_direct
     - council_portal
@@ -108,7 +110,7 @@ deduplication:
   on_duplicate:
     - keep canonical URL only in applications.yaml url field
     - record alternate_urls in seen-jobs.yaml entry when useful
-    - note in daily run report: "Deduped: [aggregator] → [canonical]"
+    - note in daily run report: "Deduped: [canonical URL] (upgraded from [weaker source] or retained live aggregator)"
     - never create a second applications.yaml row for the same role
 
 listing_freshness:
@@ -140,7 +142,13 @@ listing_freshness:
     lever: "404 or 'page doesn't exist' = closed; Apply button should be present"
     workable: "Closed roles often redirect or show 'This job is no longer available'"
     ashby: "404 or missing Apply = closed"
-    aggregators: "Never save from aggregator alone: resolve to ATS and verify open there"
+    aggregators: "Try to resolve to ATS first. If no stronger direct page exists, a clearly live aggregator listing may be saved with listing_proof and hidden_employer set when applicable."
+
+# Roles saved from weaker but still credible listing pages should carry:
+# - listing_proof: strong | medium | weak
+# - hidden_employer: true | false
+# - canonical_source_type: company_ats | company_careers | recruiter_direct | aggregator | gov_direct | niche_board | council_portal
+# - optional inferred employer note in tracker/reporting when the company is hidden but likely
 
 qa_gate:
   run_before_save: true
@@ -187,7 +195,7 @@ search_sources:
 
     - name: Indeed Australia
       id: aggregators
-      notes: High volume; always dedup against SEEK/LinkedIn/ATS. Resolve to canonical URL before saving.
+      notes: High volume; dedup against SEEK/LinkedIn/ATS. Try to upgrade to a direct page first; keep the live aggregator listing when none exists.
       urls:
         - https://au.indeed.com/jobs?q=product+manager&l=Australia
 

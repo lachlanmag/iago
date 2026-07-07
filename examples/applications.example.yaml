@@ -10,6 +10,10 @@
 # jd_path (optional): full JD markdown; set automatically by company-research to data/jds/ on shortlist
 # company_research (optional): path to role brief artifact after shortlist (set by company-research skill)
 # interview_prep (optional): path to prep artifact after apply (set by interview-prep skill)
+# listing_verified (optional): YYYY-MM-DD last QA/freshness check passed
+# listing_proof (optional): strong | medium | weak
+# hidden_employer (optional): true when the best available listing does not confirm the employer
+# canonical_source_type (optional): company_ats | company_careers | recruiter_direct | aggregator | gov_direct | niche_board | council_portal
 
 applications:
   # Example row (delete or replace when you start tracking):
@@ -31,4 +35,8 @@ applications:
   #   resume_status: draft
   #   company_research: data/company-research/2026-06-26-acme-corp-product-manager.md
   #   interview_prep: null
-  #   notes: "Example only: remove before first real run"
+  #   listing_verified: 2026-07-07
+  #   listing_proof: medium
+  #   hidden_employer: true
+  #   canonical_source_type: aggregator
+  #   notes: "Example only: remove before first real run. Likely employer (inferred): Example Healthtech Co"
