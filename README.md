@@ -13,15 +13,24 @@ A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. 
 ```bash
 git clone git@github.com:lachlanmag/iago.git
 cd iago
-bash scripts/init-data.sh
+bash scripts/init-data.sh   # optional; iago-setup runs this if data/ is missing
 ```
 
-1. Edit `data/config.yaml`:
-   - Set `profile.resume_path` to your local master resume (markdown, outside this repo)
-   - Set `profile.location`, role priorities, and search source URLs for your market
-   - Optional: `profile.output_language` for research, prep, and feedback artifacts
-2. Open the repo folder in Cursor
-3. In chat: **Run the daily job search**
+**Recommended:** open the repo in Cursor and run guided setup:
+
+> Set up job search
+
+Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
+
+The setup skill collects your location, role priorities, resume path, search boards, and watch list, then writes `data/config.yaml` for you.
+
+**Manual alternative:** edit `data/config.yaml` directly:
+
+- Set `profile.resume_path` to your local master resume (markdown, outside this repo)
+- Set `profile.location`, role priorities, and search source URLs for your market
+- Optional: `profile.output_language` for research, prep, and feedback artifacts
+
+Then in chat: **Run the daily job search**
 
 ### Prerequisites
 
@@ -40,6 +49,7 @@ bash scripts/init-data.sh
 
 ### What Iago handles
 
+- Guided first-time setup (`iago-setup`)
 - Daily job search and deduplication
 - Listing freshness checks
 - Fit scoring and prioritization
@@ -157,6 +167,7 @@ Trigger phrases: talking points, `/iago-interview`, `/interview-prep`. Runs auto
 iago/
   .cursor/skills/
     iago-daily/                    # Daily search; /iago, /iago-daily
+    iago-setup/                    # Onboarding; /iago-setup
     iago-pipeline-review/          # Pipeline triage; /iago-pipeline
     update-application/            # Tracker updates; /iago-update
     company-research/              # Role brief; /iago-brief
