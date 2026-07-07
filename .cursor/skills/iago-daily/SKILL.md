@@ -29,6 +29,8 @@ description: >-
 | `data/recruiters.yaml` | Recruiter outreach (optional) |
 | `profile.resume_path` in config | Local resume markdown for fit scoring |
 
+**Prerequisite:** If `data/config.yaml` is missing or still has example placeholders, stop and tell the user to run `iago-setup` (or `bash scripts/init-data.sh` then configure manually).
+
 Repo root is the Cursor workspace. All paths below are relative to repo root unless noted.
 
 ## Search rules (strict priority)
