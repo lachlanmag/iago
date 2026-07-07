@@ -1,8 +1,23 @@
 # Jobs surfaced in daily runs (dedup index)
 #
-# canonical url: preferred direct listing URL (company ATS, gov portal, careers site)
-# alternate_urls (optional): aggregator or mirror links for the same role
+# canonical url: strongest verified listing URL available for the role
+# alternate_urls (optional): aggregator, recruiter, or mirror links for the same role
 # ats_id (optional): lever/workable/greenhouse/ashby job id when known: used for cross-board dedup
-# listing_verified (optional): YYYY-MM-DD last QA/freshness check passed (see config listing_freshness + qa_gate)
+# listing_verified (optional): YYYY-MM-DD last QA/freshness check passed
+# listing_proof (optional): strong | medium | weak
+# hidden_employer (optional): true when the best available listing does not confirm the employer
+# canonical_source_type (optional): company_ats | company_careers | recruiter_direct | aggregator | gov_direct | niche_board | council_portal
 
 seen_jobs: []
+# seen_jobs:
+#   - url: https://www.seek.com.au/job/93146030
+#     company: Private Advertiser
+#     title: Product Manager - HealthTech
+#     industry: Healthtech
+#     listing_verified: 2026-07-07
+#     listing_proof: medium
+#     hidden_employer: true
+#     canonical_source_type: aggregator
+#     first_seen: 2026-07-07
+#     alternate_urls:
+#       - https://example-recruiter-page.invalid/product-manager-healthtech
