@@ -23,25 +23,60 @@ description: >-
 
 | File | Purpose |
 |------|---------|
-| `examples/config.example.yaml` | Schema reference and default values |
-| `data/config.yaml` | Primary write target (gitignored) |
-| `data/applications.yaml` | Tracker (init only in v1) |
-| `data/seen-jobs.yaml` | Dedup index (init only) |
-| `data/recruiters.yaml` | Recruiter tracker (init only) |
+| `$REPO_ROOT/examples/config.example.yaml` | Schema reference and default values |
+| `$REPO_ROOT/data/config.yaml` | Primary write target (gitignored) |
+| `$REPO_ROOT/data/applications.yaml` | Tracker (init only in v1) |
+| `$REPO_ROOT/data/seen-jobs.yaml` | Dedup index (init only) |
+| `$REPO_ROOT/data/recruiters.yaml` | Recruiter tracker (init only) |
 | `profile.resume_path` in config | Local resume for fit theme extraction |
 
-Repo root is the Cursor workspace.
+When Iago lives inside a larger workspace (notes, tasks, other rule sets), project skills may not auto-discover; use `install-skills.sh` as fallback.
+
+## Resolve REPO_ROOT (always first)
+
+Set `REPO_ROOT` before any file access or script. All Iago paths and scripts use `$REPO_ROOT` (e.g. `$REPO_ROOT/data/config.yaml`, `bash "$REPO_ROOT/scripts/init-data.sh"`).
+
+| Method | When |
+|--------|------|
+| Workspace contains `.cursor/skills/iago-setup/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
+| Global skill symlink | `readlink -f "$HOME/.cursor/skills/iago-setup"` → `REPO_ROOT` = parent of `.cursor/skills` on resolved path |
+| Nested under parent workspace | Find `scripts/verify-workspace.sh` in a subfolder; `REPO_ROOT` = parent of `scripts/` |
+| Still unknown | Ask user for the Iago clone path |
 
 ## Workflow
 
+### 0. Verify workspace and skills
+
+1. Resolve `REPO_ROOT` (see above). Compare with the Cursor workspace root path (from session context).
+2. Run:
+
+   ```bash
+   bash "$REPO_ROOT/scripts/verify-workspace.sh" "<cursor-workspace-path>"
+   ```
+
+3. **Exit 0 (workspace matches repo):** Skills should auto-discover. Continue to step 1.
+4. **Exit 1 (skills missing at repo root):** Stop. Tell user the checkout is partial or corrupt (missing `.cursor/skills/iago-setup/SKILL.md`). Recovery: re-clone Iago or restore `.cursor/skills/` from the repo.
+5. **Exit 2 (nested or monorepo layout):** Use `AskQuestion`:
+
+   | Choice | Action |
+   |--------|--------|
+   | **Open Iago folder** | Tell user: File → Open Folder → `REPO_ROOT`, reload window, re-run `/iago-setup` |
+   | **Install skills globally** | Run `bash "$REPO_ROOT/scripts/install-skills.sh"`, tell user to reload Cursor, continue setup |
+   | **Cancel** | Stop |
+
+6. If user already chose global install earlier, or skills are not visible after reload, run `bash "$REPO_ROOT/scripts/install-skills.sh"` (idempotent) before continuing.
+
+**Combined workspace note:** Parent folders (Obsidian vault + git repos) are fine for daily use once skills are symlinked to `~/.cursor/skills/`. Always prefix Iago file paths and scripts with `$REPO_ROOT` when workspace root ≠ `REPO_ROOT`.
+
 ### 1. Detect state
 
-Check whether core files exist: `data/config.yaml`, `data/applications.yaml`, `data/seen-jobs.yaml`.
+Check whether core files exist: `$REPO_ROOT/data/config.yaml`, `$REPO_ROOT/data/applications.yaml`, `$REPO_ROOT/data/seen-jobs.yaml`.
 
 If any are missing, run:
 
 ```bash
-bash scripts/init-data.sh
+bash "$REPO_ROOT/scripts/init-data.sh"
 ```
 
 If `data/config.yaml` exists with non-placeholder values, use `AskQuestion`:
@@ -149,7 +184,7 @@ Remind user: all output stays in gitignored `data/`. After setup, run `git statu
 
 ### 11. Write YAML
 
-- Merge collected values into `data/config.yaml`.
+- Merge collected values into `$REPO_ROOT/data/config.yaml`.
 - On **update** mode: preserve keys outside edited sections.
 - Do not modify tracker files unless user is in fresh setup and config was reset.
 
@@ -158,10 +193,11 @@ Remind user: all output stays in gitignored `data/`. After setup, run `git statu
 Summarize:
 
 - Sections written
-- Path to `data/config.yaml`
+- Path to `$REPO_ROOT/data/config.yaml`
 - Enabled search boards (names)
+- Skills status (auto-discovered at repo root, or installed to `~/.cursor/skills/`)
 - **Next step:** Run the daily job search (`iago-daily` or "Run the daily job search")
-- After repo upgrades: `bash scripts/reconcile-config.sh`
+- After repo upgrades: `bash "$REPO_ROOT/scripts/reconcile-config.sh"`
 
 ## Default board reference
 

@@ -27,9 +27,18 @@ copy_if_missing "$EXAMPLES/seen-jobs.example.yaml" "$DATA/seen-jobs.yaml"
 copy_if_missing "$EXAMPLES/recruiters.example.yaml" "$DATA/recruiters.yaml"
 
 echo
+echo "Installing Cursor skills (safe to re-run)..."
+if ! bash "$REPO_ROOT/scripts/install-skills.sh"; then
+  echo "warning: skill install failed (data/ templates were still created)" >&2
+  echo "  Retry: bash \"$REPO_ROOT/scripts/install-skills.sh\"" >&2
+fi
+
+echo
 echo "Next steps:"
 echo "  1. In Cursor chat: Set up job search  (or edit data/config.yaml manually)"
-echo "     (after upgrades: bash scripts/reconcile-config.sh to add new example keys)"
+echo "     If skills are missing: bash \"$REPO_ROOT/scripts/verify-workspace.sh\""
+echo "     Monorepo/parent workspace: bash \"$REPO_ROOT/scripts/install-skills.sh\""
+echo "     (after upgrades: bash \"$REPO_ROOT/scripts/reconcile-config.sh\" to add new example keys)"
 echo "  2. Run: Run the daily job search"
 echo "  3. After shortlisting: company-research runs automatically (or /company-research)"
 echo "  4. Before applying: /resume-feedback, then set applied via update-application"

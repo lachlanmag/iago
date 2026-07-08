@@ -23,15 +23,27 @@ description: >-
 
 | File | Purpose |
 |------|---------|
-| `data/config.yaml` | Search criteria and saved search URLs |
-| `data/applications.yaml` | Tracker: applied / shortlisted / discovered |
-| `data/seen-jobs.yaml` | Dedup list from prior runs |
-| `data/recruiters.yaml` | Recruiter outreach (optional) |
+| `$REPO_ROOT/data/config.yaml` | Search criteria and saved search URLs |
+| `$REPO_ROOT/data/applications.yaml` | Tracker: applied / shortlisted / discovered |
+| `$REPO_ROOT/data/seen-jobs.yaml` | Dedup list from prior runs |
+| `$REPO_ROOT/data/recruiters.yaml` | Recruiter outreach (optional) |
 | `profile.resume_path` in config | Local resume markdown for fit scoring |
 
-**Prerequisite:** If `data/config.yaml` is missing or still has example placeholders, stop and tell the user to run `iago-setup` (or `bash scripts/init-data.sh` then configure manually).
+**Prerequisite:** If `$REPO_ROOT/data/config.yaml` is missing or still has example placeholders, stop and tell the user to run `iago-setup` (or `bash "$REPO_ROOT/scripts/init-data.sh"` then configure manually).
 
-Repo root is the Cursor workspace. All paths below are relative to repo root unless noted.
+## Resolve REPO_ROOT (always first)
+
+Set `REPO_ROOT` before reading files or running scripts. All Iago paths use `$REPO_ROOT` (e.g. `$REPO_ROOT/data/config.yaml`).
+
+| Method | When |
+|--------|------|
+| Workspace contains `.cursor/skills/iago-daily/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
+| Global skill symlink | `readlink -f "$HOME/.cursor/skills/iago-daily"` → `REPO_ROOT` = parent of `.cursor/skills` on resolved path |
+| Nested under parent workspace | Find `scripts/verify-workspace.sh` in a subfolder; `REPO_ROOT` = parent of `scripts/` |
+| Still unknown | Ask user for the Iago clone path |
+
+When workspace root ≠ `REPO_ROOT`, always prefix file paths and scripts with `$REPO_ROOT`.
 
 ## Search rules (strict priority)
 
@@ -52,7 +64,7 @@ Repo root is the Cursor workspace. All paths below are relative to repo root unl
 
 ### 1. Load state
 
-- Read `data/config.yaml`, `data/applications.yaml`, `data/seen-jobs.yaml`, and the resume at `profile.resume_path`.
+- Read `$REPO_ROOT/data/config.yaml`, `$REPO_ROOT/data/applications.yaml`, `$REPO_ROOT/data/seen-jobs.yaml`, and the resume at `profile.resume_path`.
 - Build dedup index from `applications.yaml` + `seen-jobs.yaml`: all URLs, `ats_id` values, and `company + title + location` keys.
 
 ### 2. Search for new roles
@@ -165,7 +177,7 @@ Run every check in `qa_gate.checks`:
 
 Create or overwrite:
 
-`data/daily-runs/YYYY-MM-DD.md`
+`$REPO_ROOT/data/daily-runs/YYYY-MM-DD.md`
 
 **Layout principle:** Lead with pipeline and action. Put QA, skipped listings, dedup, and sources at the bottom as audit detail.
 
@@ -192,8 +204,8 @@ Use `---` between major sections.
 ### 7. Update tracker files (only after QA gate passes)
 
 - Write **only** roles that passed step 5 QA gate.
-- Append genuinely **new** roles to `data/applications.yaml` with `status: discovered`, `industry`, `resume_fit`, `resume_fit_note`, canonical `url`, `discovered: YYYY-MM-DD`.
-- Append to `data/seen-jobs.yaml` with `first_seen`, canonical `url`, optional `alternate_urls`, `ats_id`, and `listing_verified: YYYY-MM-DD`.
+- Append genuinely **new** roles to `$REPO_ROOT/data/applications.yaml` with `status: discovered`, `industry`, `resume_fit`, `resume_fit_note`, canonical `url`, `discovered: YYYY-MM-DD`.
+- Append to `$REPO_ROOT/data/seen-jobs.yaml` with `first_seen`, canonical `url`, optional `alternate_urls`, `ats_id`, and `listing_verified: YYYY-MM-DD`.
 - When a duplicate has a better canonical URL, update the existing entry's `url` (do not duplicate rows).
 - Set `status: closed` on existing rows only when QA spot-check or search verified the listing closed.
 
@@ -238,10 +250,10 @@ End with:
 **Run once locally (headless CLI):**
 
 ```bash
-bash scripts/run-daily-search.sh
+bash "$REPO_ROOT/scripts/run-daily-search.sh"
 ```
 
-Requires `cursor agent login` once. Logs: `data/logs/latest.log`
+Requires `cursor agent login` once. Logs: `$REPO_ROOT/data/logs/latest.log`
 
 **Schedule locally on macOS (weekdays 8 AM):**
 
