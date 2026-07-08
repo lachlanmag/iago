@@ -103,7 +103,45 @@ Then reload the window again.
 - Copy files manually from GitHub
 - Worry about `data/` being committed or deleted by `git pull`
 
-If you use a more advanced layout (separate dev and production folders), see contributor docs or your own notes. The steps above are for the common case: one Iago folder for daily job search.
+If you use a more advanced layout (separate dev and production folders), see [Advanced: dev + prod worktrees](#advanced-dev--prod-worktrees) below. The steps above are for the common case: one Iago folder for daily job search.
+
+### Advanced: dev + prod worktrees
+
+**Contributors and power users only.** Skip this if you have a single Iago folder.
+
+Some layouts use [git worktrees](https://git-scm.com/docs/git-worktree): one checkout for daily job search with real `data/` (prod, usually on `main`), and another for developing skills or scripts (dev, on feature branches). Code syncs via git; `data/` stays local to each checkout.
+
+Typical pattern:
+
+```
+~/git-repos/iago-dev/          # primary clone (git home) — feature branches
+~/path/to/iago-prod/           # worktree on main — real data/
+```
+
+Create a prod worktree from your dev clone (once):
+
+```bash
+cd /path/to/iago-dev
+git fetch origin
+git worktree add /path/to/iago-prod main
+```
+
+Develop on a feature branch in the dev clone, open a PR, and merge to `main`. Then update prod without touching its `data/`:
+
+```bash
+cd /path/to/iago-dev
+bash scripts/sync-prod.sh
+```
+
+The script finds the other worktree on `main` automatically. If you have several worktrees, set the prod path explicitly:
+
+```bash
+IAGO_PROD_ROOT=/path/to/iago-prod bash scripts/sync-prod.sh
+```
+
+`sync-prod.sh` fast-forwards prod to `origin/main`, runs `reconcile-config.sh` in prod, and refreshes skill symlinks via `install-skills.sh`. It never modifies prod `data/`.
+
+Preview config keys only: `bash scripts/sync-prod.sh --dry-run`
 
 ## How It Works
 
@@ -241,7 +279,7 @@ iago/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, run-daily-search.sh
+  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, run-daily-search.sh, sync-prod.sh (worktrees)
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
