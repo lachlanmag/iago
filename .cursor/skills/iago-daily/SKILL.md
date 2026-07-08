@@ -122,7 +122,7 @@ For every candidate role, check against the dedup index using `config.yaml` → 
 | `ats_job_id` | Extract ID from `jobs.lever.co/{company}/{id}`, `jobs.workable.com/view/{id}`, `boards.greenhouse.io/{company}/jobs/{id}`, `jobs.ashbyhq.com/{company}/{id}` |
 | `company_title_location` | Normalized company + title + location bucket per `deduplication.normalize` |
 
-**If duplicate found:** do not create a new tracker row. If the new source has a **higher-priority direct** URL per `deduplication.canonical_url_priority`, update the existing entry's `url` and move the old URL to `alternate_urls`. If no stronger direct URL exists, keep the **strongest verified live** URL available, even if it is an aggregator page.
+**If duplicate found:** do not create a new tracker row. Compare both URLs against `deduplication.canonical_url_priority`. If the new source ranks **higher** and both pages are verified live, update the existing entry's `url` and move the old URL to `alternate_urls`. If the existing URL ranks higher, or only the existing URL is verified live, keep the existing canonical URL (even when it is an aggregator page).
 
 **Canonical URL priority** (highest wins):
 
@@ -179,7 +179,7 @@ Run every check in `qa_gate.checks`:
 
 | Check | What to do |
 |-------|------------|
-| **dedup_all_candidates** | Re-run step 2b on full candidate set. Merge URL upgrades; remove duplicate rows. |
+| **dedup_all_candidates** | Re-run step 2b on full candidate set. Keep the higher-priority canonical URL when both duplicates are verified live; otherwise keep the stronger verified live URL. Merge upgrades; remove duplicate rows. |
 | **verify_listing_open** | Re-fetch each candidate's chosen canonical listing page. Re-apply `listing_freshness` rules. Fail = exclude from save. Aggregator pages may pass when they are the best available live listing. |
 | **verify_url_resolves** | Canonical URL must resolve to a usable listing page, not necessarily a direct employer site. Use browser for SPAs that block curl. |
 | **spot_check_tracker** | Re-verify all `discovered` and `shortlisted` rows in `applications.yaml`. Past closing date or closed banner → set `status: closed`. |
