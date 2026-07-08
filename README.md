@@ -58,6 +58,53 @@ bash scripts/install-skills.sh
 
 Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `cd` into the clone first). The `iago-setup` skill runs these checks during onboarding and uses `$REPO_ROOT` for all paths when the workspace root is a parent folder.
 
+## Updating Iago
+
+Iago improves over time: new skills, bug fixes, and config options land on GitHub. You do **not** need to understand git deeply to stay current. You only need to download those updates into your local copy.
+
+**Your job search data is safe.** Everything personal (tracker, config, reports) lives in `data/`, which is gitignored. Updating Iago refreshes code and skills only. It does not overwrite `data/`.
+
+### When to update
+
+Update when you want the latest Iago release, or when something in chat mentions a skill or script you do not seem to have yet. There is no fixed schedule. Many people check every week or two.
+
+### Steps (typical single-folder setup)
+
+Open a terminal in your Iago folder (the directory that contains `.cursor/` and `scripts/`), then:
+
+```bash
+git pull
+```
+
+That fetches improvements from GitHub into your copy. If git asks you to commit or stash local changes first, you have probably edited tracked files (not `data/`). Ask in Cursor chat or open an issue if you are unsure.
+
+**Merge new config keys** when the example template has gained options you might want (for example Resume-Matcher integration). This adds missing keys to your existing `data/config.yaml` without overwriting your values:
+
+```bash
+bash scripts/reconcile-config.sh --dry-run   # preview only
+bash scripts/reconcile-config.sh             # apply (creates a timestamped backup)
+```
+
+Requires `pip3 install ruamel.yaml` once (preserves YAML comments).
+
+**Reload Cursor** so updated skills are picked up: Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows/Linux) → **Developer: Reload Window**.
+
+If your Cursor workspace is a **parent folder** (for example an Obsidian vault that contains Iago as a subfolder), also run:
+
+```bash
+bash scripts/install-skills.sh
+```
+
+Then reload the window again.
+
+### What you do not need to do
+
+- Re-clone the repo or run setup again unless you want a fresh start
+- Copy files manually from GitHub
+- Worry about `data/` being committed or deleted by `git pull`
+
+If you use a more advanced layout (separate dev and production folders), see contributor docs or your own notes. The steps above are for the common case: one Iago folder for daily job search.
+
 ## How It Works
 
 1. **Search for roles** with the daily search workflow.
@@ -129,14 +176,12 @@ Point `profile.resume_path` at your master resume for fit scoring during search 
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
 
-When the example template gains new keys (e.g. `integrations.resume_matcher.enabled`), merge them into your existing `data/config.yaml` without overwriting your values:
+When the example template gains new keys, merge them into your existing `data/config.yaml` without overwriting your values. See [Updating Iago](#updating-iago) for the full update flow; quick version:
 
 ```bash
 bash scripts/reconcile-config.sh --dry-run   # preview keys to add
 bash scripts/reconcile-config.sh             # apply (creates a timestamped .bak backup)
 ```
-
-Requires `pip3 install ruamel.yaml` (preserves YAML comments).
 
 ### Status updates
 
