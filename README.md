@@ -11,23 +11,52 @@ A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. 
 ## Getting Started
 
 ```bash
-git clone git@github.com:lachlanmag/iago.git
-cd iago
-bash scripts/init-data.sh
+cd ~/git-repos
+git clone git@github.com:lachlanmag/iago.git job-search
+cd job-search
+bash scripts/init-data.sh   # optional; iago-setup runs this if data/ is missing
 ```
 
-1. Edit `data/config.yaml`:
-   - Set `profile.resume_path` to your local master resume (markdown, outside this repo)
-   - Set `profile.location`, role priorities, and search source URLs for your market
-   - Optional: `profile.output_language` for research, prep, and feedback artifacts
-2. Open the repo folder in Cursor
-3. In chat: **Run the daily job search**
+Clone into an existing empty folder with `git clone git@github.com:lachlanmag/iago.git .` (avoids a nested `iago/` directory).
+
+**Recommended:** open the repo root in Cursor (the folder that contains `.cursor/skills/`) and run guided setup:
+
+> Set up job search
+
+Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
+
+The setup skill collects your location, role priorities, resume path, search boards, and watch list, then writes `data/config.yaml` for you.
+
+**Manual alternative:** edit `data/config.yaml` directly:
+
+- Set `profile.resume_path` to your local master resume (markdown, outside this repo)
+- Set `profile.location`, role priorities, and search source URLs for your market
+- Optional: `profile.output_language` for research, prep, and feedback artifacts
+
+Then in chat: **Run the daily job search**
 
 ### Prerequisites
 
 - [Cursor](https://cursor.com) with Agent
 - Network access for job board search
 - For headless runs: `cursor agent login` (once)
+
+### Cursor skills
+
+Iago skills ship in `.cursor/skills/`. Cursor discovers them automatically when this repo is the workspace root.
+
+If you use a **parent workspace** (e.g. Obsidian vault + several git repos), skills may be scoped to the Iago folder only. Two options:
+
+1. **Open the Iago repo root** in Cursor (File → Open Folder).
+2. **Symlink skills globally** (recommended for combined workspaces). Run from your Iago clone (scripts resolve paths from their own location):
+
+```bash
+cd /path/to/your/iago-clone
+bash scripts/install-skills.sh
+# Cmd+Shift+P → Developer: Reload Window
+```
+
+Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `cd` into the clone first). The `iago-setup` skill runs these checks during onboarding and uses `$REPO_ROOT` for all paths when the workspace root is a parent folder.
 
 ## How It Works
 
@@ -40,6 +69,7 @@ bash scripts/init-data.sh
 
 ### What Iago handles
 
+- Guided first-time setup (`iago-setup`)
 - Daily job search and deduplication
 - Listing freshness checks
 - Fit scoring and prioritization
@@ -157,6 +187,7 @@ Trigger phrases: talking points, `/iago-interview`, `/interview-prep`. Runs auto
 iago/
   .cursor/skills/
     iago-daily/                    # Daily search; /iago, /iago-daily
+    iago-setup/                    # Onboarding; /iago-setup
     iago-pipeline-review/          # Pipeline triage; /iago-pipeline
     update-application/            # Tracker updates; /iago-update
     company-research/              # Role brief; /iago-brief
@@ -165,7 +196,7 @@ iago/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, reconcile-config.sh, run-daily-search.sh
+  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, run-daily-search.sh
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps

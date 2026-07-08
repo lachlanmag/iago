@@ -10,7 +10,7 @@ Issue numbers link to open tickets. Merged duplicates are noted inline.
 |-------|--------|-------|---------|
 | `iago-daily` | **Shipped** | n/a | Daily search, dedup, QA gate, fit scoring, tracker updates, daily report |
 | `iago-pipeline-review` | **Shipped** | n/a | Triage open pipeline, re-verify listings, rank and recommend shortlist/apply priorities |
-| `iago-setup` | Planned | [#1](https://github.com/lachlanmag/iago/issues/1) | Conversational onboarding; writes gitignored `data/` YAML |
+| `iago-setup` | **Shipped** | [#1](https://github.com/lachlanmag/iago/issues/1) | Conversational onboarding; writes gitignored `data/` YAML |
 | `update-application` | **Shipped** | [#5](https://github.com/lachlanmag/iago/issues/5) | Pipeline status updates; chains research on shortlist and prep on apply |
 | `company-research` | **Shipped** | [#6](https://github.com/lachlanmag/iago/issues/6) | Role brief from company site + JD (auto on shortlist) |
 | `interview-prep` | **Shipped** | [#7](https://github.com/lachlanmag/iago/issues/7) | Talking points from JD + resume (auto on apply) |
@@ -25,7 +25,7 @@ Core onboarding and day-to-day tracker updates.
 
 | # | Item | Issue | Notes |
 |---|------|-------|-------|
-| 1 | **Setup skill** | [#1](https://github.com/lachlanmag/iago/issues/1) | Guided chat flow replaces hand-editing `config.yaml`. Includes launchd plist substitution ([#21](https://github.com/lachlanmag/iago/issues/21)) as optional sub-task. |
+| 1 | ~~**Setup skill**~~ | [#1](https://github.com/lachlanmag/iago/issues/1) | Shipped: `iago-setup` guided onboarding. Launchd plist ([#21](https://github.com/lachlanmag/iago/issues/21)) remains separate. |
 | 2 | **Config validation** | [#14](https://github.com/lachlanmag/iago/issues/14) | Health check script + YAML schema validation (merged from [#18](https://github.com/lachlanmag/iago/issues/18)). Run after setup or before daily search. |
 | 3 | ~~**Update-application skill**~~ | [#5](https://github.com/lachlanmag/iago/issues/5) | Shipped with `company-research` + `interview-prep` chaining. |
 
