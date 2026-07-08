@@ -205,7 +205,6 @@ When resolving URLs, start from `examples/config.example.yaml` → `search_sourc
 
 ## Out of scope
 
-- Launchd plist substitution
 - Regional presets or source catalog
 - Config validation script
 - Importing applications from spreadsheet

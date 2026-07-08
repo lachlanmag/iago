@@ -255,15 +255,6 @@ bash "$REPO_ROOT/scripts/run-daily-search.sh"
 
 Requires `cursor agent login` once. Logs: `$REPO_ROOT/data/logs/latest.log`
 
-**Schedule locally on macOS (weekdays 8 AM):**
-
-```bash
-chmod +x scripts/run-daily-search.sh scripts/init-data.sh
-# Edit scripts/com.example.iago-daily.plist: replace __REPO_ROOT__
-cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
-```
-
 **While Cursor is open:**
 
 > /loop 1d Run the daily job search skill and update the tracker

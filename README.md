@@ -305,40 +305,6 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
 
-## Automation
-
-### Scheduled daily search on macOS
-
-```bash
-chmod +x scripts/*.sh
-# Replace __REPO_ROOT__ in scripts/com.example.iago-daily.plist with your clone path
-cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
-```
-
-If you previously scheduled the old `com.example.job-search-daily` agent, unload and remove it first:
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist
-rm ~/Library/LaunchAgents/com.example.job-search-daily.plist
-```
-
-This is optional. You can also just run the search manually from Cursor chat.
-
-## Post-merge checklist (repo rename)
-
-Clone and issue links in this repo assume the GitHub repo is named `iago`. After merging the Iago rebrand:
-
-1. Rename the GitHub repo to `iago` on github.com
-2. `git remote set-url origin git@github.com:lachlanmag/iago.git`
-3. Optionally rename your local clone directory to `iago`
-4. If launchd is loaded: `launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist`
-5. Remove `~/Library/LaunchAgents/com.example.job-search-daily.plist`
-6. Set `__REPO_ROOT__` in `scripts/com.example.iago-daily.plist`
-7. `cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/`
-8. `launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist`
-9. Re-open the repo in Cursor from the new folder path
-
 ## Roadmap
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for planned skills, Obsidian compatibility, regional presets, and other expansion ideas.

@@ -25,7 +25,7 @@ Core onboarding and day-to-day tracker updates.
 
 | # | Item | Issue | Notes |
 |---|------|-------|-------|
-| 1 | ~~**Setup skill**~~ | [#1](https://github.com/lachlanmag/iago/issues/1) | Shipped: `iago-setup` guided onboarding. Launchd plist ([#21](https://github.com/lachlanmag/iago/issues/21)) remains separate. |
+| 1 | ~~**Setup skill**~~ | [#1](https://github.com/lachlanmag/iago/issues/1) | Shipped: `iago-setup` guided onboarding. |
 | 2 | **Config validation** | [#14](https://github.com/lachlanmag/iago/issues/14) | Health check script + YAML schema validation (merged from [#18](https://github.com/lachlanmag/iago/issues/18)). Run after setup or before daily search. |
 | 3 | ~~**Update-application skill**~~ | [#5](https://github.com/lachlanmag/iago/issues/5) | Shipped with `company-research` + `interview-prep` chaining. |
 
@@ -57,8 +57,7 @@ Quality, secondary skills, integrations, and contributor docs.
 | 12 | **Resume-Matcher hook docs** | [#3](https://github.com/lachlanmag/iago/issues/3) | Shortlist → external tailoring handoff; document expected JSON shape for `resume-feedback`. |
 | 13 | **Contributing guide** | [#15](https://github.com/lachlanmag/iago/issues/15) | Needed before community PRs on source catalog (#23). |
 | 14 | **Notification webhooks** | [#4](https://github.com/lachlanmag/iago/issues/4) | Slack/email on daily run completion or top-pick changes. |
-| 15 | **Launchd plist automation** | [#21](https://github.com/lachlanmag/iago/issues/21) | Auto `__REPO_ROOT__` substitution; may land inside #1. |
-| 16 | **Resume-feedback tracker integration** | n/a | `update-application` sets `resume_status: ready` when user confirms apply-ready after feedback. |
+| 15 | **Resume-feedback tracker integration** | n/a | `update-application` sets `resume_status: ready` when user confirms apply-ready after feedback. |
 
 ---
 
