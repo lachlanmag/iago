@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/logo.png" alt="Iago" width="96" />
-</p>
+
 
 # Iago
 
@@ -41,6 +39,8 @@ Then in chat: **Run the daily job search**
 - Network access for job board search
 - For headless runs: `cursor agent login` (once)
 
+
+
 ### Cursor skills
 
 Iago skills ship in `.cursor/skills/`. Cursor discovers them automatically when this repo is the workspace root.
@@ -66,7 +66,7 @@ Iago improves over time: new skills, bug fixes, and config options land on GitHu
 
 ### When to update
 
-Update when you want the latest Iago release, or when something in chat mentions a skill or script you do not seem to have yet. There is no fixed schedule. Many people check every week or two.
+Update when you want the latest Iago release, or when something in chat mentions a skill or script you do not seem to have yet. There is no fixed schedule. With a GitHub account, click **Watch** on the repo and choose **Releases only** to get notified when a new version lands. Without an account, check the [Releases](https://github.com/lachlanmag/iago/releases) page or run `git pull` occasionally.
 
 ### Steps (typical single-folder setup)
 
@@ -152,6 +152,8 @@ Preview config keys only: `bash scripts/sync-prod.sh --dry-run`
 5. **Review your resume** before applying.
 6. **Generate interview prep** once an application is submitted.
 
+
+
 ### What Iago handles
 
 - Guided first-time setup (`iago-setup`)
@@ -163,6 +165,8 @@ Preview config keys only: `bash scripts/sync-prod.sh --dry-run`
 - Resume feedback before apply
 - Interview prep on submit
 
+
+
 ### What Iago does not handle
 
 - Resume tailoring or rewriting
@@ -170,7 +174,11 @@ Preview config keys only: `bash scripts/sync-prod.sh --dry-run`
 - PDF export
 - Final judgment on whether a role is worth applying to
 
+
+
 ## Core Workflows
+
+
 
 ### Daily search
 
@@ -221,14 +229,18 @@ bash scripts/reconcile-config.sh --dry-run   # preview keys to add
 bash scripts/reconcile-config.sh             # apply (creates a timestamped .bak backup)
 ```
 
+
+
 ### Status updates
 
 Use `update-application` so status changes chain follow-on work automatically:
 
-| Action | Command example | Chained skill |
-|--------|-----------------|---------------|
-| Shortlist | `Shortlist [Company]` | `company-research` (saves JD + role brief) |
-| Apply | `Set [Company] to applied on [date]` | `interview-prep` (talking points) |
+
+| Action    | Command example                      | Chained skill                              |
+| --------- | ------------------------------------ | ------------------------------------------ |
+| Shortlist | `Shortlist [Company]`                | `company-research` (saves JD + role brief) |
+| Apply     | `Set [Company] to applied on [date]` | `interview-prep` (talking points)          |
+
 
 Pipeline review also runs `company-research` when you confirm a `discovered` -> `shortlisted` promotion.
 
@@ -285,23 +297,27 @@ iago/
   docs/ROADMAP.md                    # Future work and gaps
 ```
 
+
+
 ### Local data
 
 Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-Matcher) (`apps/backend/data/`): personal files live in a gitignored directory inside the repo.
 
-| File | Purpose |
-|------|---------|
-| `config.yaml` | Search criteria, sources, fit rubric |
-| `applications.yaml` | Application pipeline tracker |
-| `seen-jobs.yaml` | Dedup index |
-| `recruiters.yaml` | Recruiter outreach (optional) |
-| `daily-runs/YYYY-MM-DD.md` | Daily search reports |
-| `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports |
-| `company-research/` | Role briefs (auto when shortlisted) |
-| `jds/` | Full job descriptions (auto when shortlisted) |
-| `interview-prep/` | Interview prep (auto when applied) |
-| `resume-feedback/` | Resume feedback artifacts |
-| `logs/` | CLI run logs |
+
+| File                             | Purpose                                       |
+| -------------------------------- | --------------------------------------------- |
+| `config.yaml`                    | Search criteria, sources, fit rubric          |
+| `applications.yaml`              | Application pipeline tracker                  |
+| `seen-jobs.yaml`                 | Dedup index                                   |
+| `recruiters.yaml`                | Recruiter outreach (optional)                 |
+| `daily-runs/YYYY-MM-DD.md`       | Daily search reports                          |
+| `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports    |
+| `company-research/`              | Role briefs (auto when shortlisted)           |
+| `jds/`                           | Full job descriptions (auto when shortlisted) |
+| `interview-prep/`                | Interview prep (auto when applied)            |
+| `resume-feedback/`               | Resume feedback artifacts                     |
+| `logs/`                          | CLI run logs                                  |
+
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
 
