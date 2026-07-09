@@ -1,11 +1,11 @@
 ---
 name: iago-daily
 description: >-
-  Run the daily PM/PO/BA job search, surface new listings, and update the
-  application tracker. Use when the user says daily job search, job hunt, find
-  new jobs, run the job search, run the job search for today, check for jobs
-  today, search for new PM roles, what's new on the boards, update the tracker
-  from today's search, or runs /iago or /iago-daily.
+  Run the daily job search from your configured role priorities, surface new
+  listings, and update the application tracker. Use when the user says daily
+  job search, job hunt, find new jobs, run the job search, run the job search
+  for today, check for jobs today, search for new roles, what's new on the
+  boards, update the tracker from today's search, or runs /iago or /iago-daily.
 ---
 
 # Daily job search
@@ -13,7 +13,7 @@ description: >-
 ## When to use
 
 - User asks for a daily/weekly job search
-- User wants new PM, Product Owner, or BA roles
+- User wants new roles matching their configured `role_priority`
 - User says "run the job search for today", "check for jobs today", or "what's new on the boards"
 - User asks to update the tracker from today's search (add new `discovered` rows; not status changes)
 - Cursor Automation or `/loop` triggers this skill
@@ -47,7 +47,7 @@ When workspace root ≠ `REPO_ROOT`, always prefix file paths and scripts with `
 
 ## Search rules (strict priority)
 
-1. **Role order:** Use `config.yaml` → `role_priority` (typically PM → PO → BA, Senior variants included).
+1. **Role order:** Use `config.yaml` → `role_priority` in the order listed.
 2. **Location:** Prefer `profile.location` first. Respect `profile.willing_to_relocate`.
 3. **Outside local metro:** Apply `location_rules.outside_local` (typically remote-only).
 4. **Industry:** Tag every role with an `industry` label from `config.yaml` → `industry_labels`.
@@ -125,15 +125,15 @@ Log dedup actions in the daily run report section **Deduped this run**.
 
 ### 3. Score and tier results
 
-Output tiers (adapt to user's location rules):
+Output tiers (adapt to user's `role_priority`, `location_rules`, and `preferences`):
 
 | Tier | Criteria |
 |------|----------|
-| **Tier 1** | Local metro + PM + B2B SaaS + hybrid |
-| **Tier 2** | Local metro + PM (any strong product org) |
-| **Tier 3** | Local metro + PO or Senior BA in SaaS/product company |
-| **Tier 4** | Remote (country) + PM/PO (outside local metro) |
-| **Tier 5** | Remote (country) + BA |
+| **Tier 1** | Local metro + highest `role_priority` + strongest preference match (industry, work model) |
+| **Tier 2** | Local metro + highest `role_priority` |
+| **Tier 3** | Local metro + secondary `role_priority` |
+| **Tier 4** | Remote (country) + highest `role_priority` (outside local metro) |
+| **Tier 5** | Remote (country) + secondary `role_priority` |
 
 For each role include: company, title, industry, **resume fit flag**, location, work model, why it fits (1 line), direct URL, tier.
 
@@ -254,15 +254,6 @@ bash "$REPO_ROOT/scripts/run-daily-search.sh"
 ```
 
 Requires `cursor agent login` once. Logs: `$REPO_ROOT/data/logs/latest.log`
-
-**Schedule locally on macOS (weekdays 8 AM):**
-
-```bash
-chmod +x scripts/run-daily-search.sh scripts/init-data.sh
-# Edit scripts/com.example.iago-daily.plist: replace __REPO_ROOT__
-cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
-```
 
 **While Cursor is open:**
 

@@ -94,7 +94,7 @@ In chat:
 
 - STAR stories must map to real resume bullets; flag weak evidence.
 - Answers should be speakable (short paragraphs, not essay tone).
-- Include 5–8 likely questions for PM/PO/BA screens and one deeper product sense question.
+- Include 5–8 likely interview questions for the role type and one deeper craft or seniority question.
 - No em dash characters in generated text.
 - Personal artifacts stay under gitignored `data/`.
 

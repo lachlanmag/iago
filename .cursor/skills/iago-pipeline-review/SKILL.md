@@ -76,11 +76,11 @@ Use the same signals as daily search (do not invent new tiers):
 
 | Tier | Criteria |
 |------|----------|
-| **Tier 1** | Local metro + PM + B2B SaaS + hybrid |
-| **Tier 2** | Local metro + PM (any strong product org) |
-| **Tier 3** | Local metro + PO or Senior BA in SaaS/product company |
-| **Tier 4** | Remote (country) + PM/PO (outside local metro) |
-| **Tier 5** | Remote (country) + BA |
+| **Tier 1** | Local metro + highest `role_priority` + strongest preference match (industry, work model) |
+| **Tier 2** | Local metro + highest `role_priority` |
+| **Tier 3** | Local metro + secondary `role_priority` |
+| **Tier 4** | Remote (country) + highest `role_priority` (outside local metro) |
+| **Tier 5** | Remote (country) + secondary `role_priority` |
 
 **Flags** (independent: combine as needed):
 

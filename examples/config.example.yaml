@@ -1,5 +1,8 @@
 # Job search criteria: copy to data/config.yaml and customize
 # Run: bash scripts/init-data.sh
+#
+# Example below reflects a Product Management search. role_priority, resume_fit,
+# and search sources are fully customizable for other roles via iago-setup or manual edit.
 
 profile:
   resume_path: /path/to/your/master-resume.md  # local only; never commit
@@ -69,7 +72,7 @@ resume_fit:
   levels:
     strong: "Role maps cleanly to 2+ core resume themes with minimal gap"
     good: "Clear overlap on role type + at least one core theme"
-    stretch: "Transferable PM/PO/BA skills but domain, seniority, or craft mismatch"
+    stretch: "Transferable skills but domain, seniority, or craft mismatch"
     weak: "Little overlap: no flag shown"
   core_themes:
     - B2B SaaS platform product management (module ownership, roadmap, backlog)
@@ -83,8 +86,8 @@ resume_fit:
     - Enterprise customer base and module or platform scope
     - Onboarding, lifecycle, workflow, or integration ownership
   stretch_signals:
-    - Product Owner when user priority is PM
-    - Business Analyst when user priority is PM/PO
+    - Adjacent role title when user priority is more senior or specialized
+    - Different craft or domain with weak overlap to core themes
     - B2C-only or non-SaaS product surface with weak enterprise overlap
   proof_points: []  # Add your own resume highlights for agent context
 

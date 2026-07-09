@@ -1,39 +1,10 @@
-<p align="center">
-  <img src="assets/logo.png" alt="Iago" width="96" />
-</p>
-
 # Iago
 
-**Iago is your job search assistant.** It's eager to help, full of opinions, and occasionally a little too sure of itself. Use it to surface roles, triage your pipeline, and prep for interviews, but treat its output as a starting point: check listings are still live, read the briefs, and sanity-check anything that sounds too good before you hit apply.
+**Iago is your personal job search henchman.** It's eager to help, full of opinions, and occasionally a little too sure of itself. Use it to surface roles, triage your pipeline, and prep for interviews, but treat its output as a starting point: check listings are still live, read the briefs, and sanity-check anything that sounds too good before you hit apply.
 
-A Cursor-native workflow for sourcing PM/PO/BA roles and tracking applications. No app to deploy: open the repo in Cursor, configure local search criteria, and run a daily agent-driven search that updates YAML trackers and writes a daily report.
+A Cursor-native workflow for sourcing tech roles and tracking applications. Right now it is built around my Product Management search, though the setup skill and config can adapt to other roles. No app to deploy: clone the repo, open it in Cursor, run setup in chat, and kick off a daily agent-driven search that updates YAML trackers and writes a daily report.
 
 ## Getting Started
-
-```bash
-cd ~/git-repos
-git clone git@github.com:lachlanmag/iago.git job-search
-cd job-search
-bash scripts/init-data.sh   # optional; iago-setup runs this if data/ is missing
-```
-
-Clone into an existing empty folder with `git clone git@github.com:lachlanmag/iago.git .` (avoids a nested `iago/` directory).
-
-**Recommended:** open the repo root in Cursor (the folder that contains `.cursor/skills/`) and run guided setup:
-
-> Set up job search
-
-Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
-
-The setup skill collects your location, role priorities, resume path, search boards, and watch list, then writes `data/config.yaml` for you.
-
-**Manual alternative:** edit `data/config.yaml` directly:
-
-- Set `profile.resume_path` to your local master resume (markdown, outside this repo)
-- Set `profile.location`, role priorities, and search source URLs for your market
-- Optional: `profile.output_language` for research, prep, and feedback artifacts
-
-Then in chat: **Run the daily job search**
 
 ### Prerequisites
 
@@ -41,22 +12,96 @@ Then in chat: **Run the daily job search**
 - Network access for job board search
 - For headless runs: `cursor agent login` (once)
 
+### 1. Clone
+
+```bash
+# Use whatever folder you keep git repos in (e.g. ~/projects, ~/src, ~/code)
+cd ~/projects
+git clone git@github.com:lachlanmag/iago.git
+cd iago
+```
+
+### 2. Run setup in Cursor
+
+Open the repo root in Cursor (the folder that contains `.cursor/skills/`) and start guided setup in chat:
+
+> Set up job search
+
+Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
+
+The setup skill initializes `data/` if needed, then walks you through location, role priorities, resume path, search boards, and watch list, and writes `data/config.yaml`.
+
+### 3. Run your first search
+
+> Run the daily job search
+
+**Manual alternative:** run `bash scripts/init-data.sh`, then edit `data/config.yaml` directly (`profile.resume_path`, `profile.location`, role priorities, search sources). Optional: `profile.output_language` for research, prep, and feedback artifacts.
+
+
+
 ### Cursor skills
 
 Iago skills ship in `.cursor/skills/`. Cursor discovers them automatically when this repo is the workspace root.
 
-If you use a **parent workspace** (e.g. Obsidian vault + several git repos), skills may be scoped to the Iago folder only. Two options:
+If your workspace is a **parent folder** (e.g. Obsidian vault + several git repos), there is no settings toggle for a custom skills path. Use one of these instead:
 
-1. **Open the Iago repo root** in Cursor (File → Open Folder).
-2. **Symlink skills globally** (recommended for combined workspaces). Run from your Iago clone (scripts resolve paths from their own location):
+1. **Open the Iago repo root** (File → Open Folder). Simplest.
+2. **Add Iago to the workspace** (File → Add Folder to Workspace). Skills in `iago/.cursor/skills/` are discovered when you work with files inside the Iago folder.
+3. **Install skills globally** only if you need them everywhere in a large parent workspace without opening Iago files: `bash scripts/install-skills.sh` from your clone, then reload the window.
+
+Check discovery in **Cursor Settings → Customize → Skills**. Layout check: `bash scripts/verify-workspace.sh` from your clone. The `iago-setup` skill runs these checks during onboarding and uses `$REPO_ROOT` for all paths when the workspace root is a parent folder.
+
+## Upgrading Iago
+
+Iago improves over time: new skills, bug fixes, and config options land on GitHub. You do **not** need to understand git or run scripts yourself.
+
+**Your job search data is safe.** Everything personal (tracker, config, reports) lives in `data/`, which is gitignored. Upgrading Iago refreshes code and skills only. It does not overwrite your existing config values.
+
+### When to upgrade
+
+Upgrade when you want the latest Iago release, or when something in chat mentions a skill or script you do not seem to have yet. There is no fixed schedule. With a GitHub account, click **Watch** on the repo and choose **Releases only** to get notified when a new version lands.
+
+### In Cursor chat (recommended)
+
+> Upgrade Iago version
+
+Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, check for Iago updates, `/iago-upgrade-version`.
+
+The `iago-upgrade-version` skill pulls from GitHub, merges any new config template keys into your `data/config.yaml`, refreshes global skill symlinks when your workspace is a parent folder, and reminds you to reload Cursor.
+
+After a successful upgrade: **Developer: Reload Window** (Cmd+Shift+P on Mac, Ctrl+Shift+P on Windows/Linux).
+
+### Manual alternative
+
+Open a terminal in your Iago folder (the directory that contains `.cursor/` and `scripts/`), then:
 
 ```bash
-cd /path/to/your/iago-clone
-bash scripts/install-skills.sh
-# Cmd+Shift+P → Developer: Reload Window
+bash scripts/upgrade-iago-version.sh           # full version upgrade
+bash scripts/upgrade-iago-version.sh --check   # see if a newer version is available
+bash scripts/upgrade-iago-version.sh --dry-run # preview new config keys only
 ```
 
-Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `cd` into the clone first). The `iago-setup` skill runs these checks during onboarding and uses `$REPO_ROOT` for all paths when the workspace root is a parent folder.
+Requires `pip3 install ruamel.yaml` once if config merge fails (preserves YAML comments).
+
+### What you do not need to do
+
+- Re-clone the repo or run setup again unless you want a fresh start
+- Copy files manually from GitHub
+- Worry about `data/` being committed or deleted by `git pull`
+
+### Maintainer note
+
+Optional solo-maintainer layout: **dev clone** (feature branches) + **daily-driver checkout** on `main` (real `data/`). Iago has no deploy target; version upgrade on the daily driver is `git pull` plus Iago-specific steps bundled in `sync-daily-driver.sh`.
+
+From the dev clone after merging to `main`:
+
+```bash
+bash scripts/sync-daily-driver.sh              # refresh daily driver: pull main, reconcile-config, install-skills; never touches data/
+bash scripts/sync-daily-driver.sh --dry-run    # preview new config keys only
+IAGO_DAILY_DRIVER_ROOT=/path/to/daily-driver bash scripts/sync-daily-driver.sh   # if auto-detect fails
+```
+
+One-time daily-driver checkout: `git worktree add /path/to/iago-daily main` from the dev clone (a second full clone works too). Future contributors only need fork + PR on one clone.
 
 ## How It Works
 
@@ -67,9 +112,12 @@ Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `c
 5. **Review your resume** before applying.
 6. **Generate interview prep** once an application is submitted.
 
+
+
 ### What Iago handles
 
 - Guided first-time setup (`iago-setup`)
+- One-chat version upgrade (`iago-upgrade-version`)
 - Daily job search and deduplication
 - Listing freshness checks
 - Fit scoring and prioritization
@@ -78,6 +126,8 @@ Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `c
 - Resume feedback before apply
 - Interview prep on submit
 
+
+
 ### What Iago does not handle
 
 - Resume tailoring or rewriting
@@ -85,7 +135,15 @@ Check layout: `bash /path/to/your/iago-clone/scripts/verify-workspace.sh` (or `c
 - PDF export
 - Final judgment on whether a role is worth applying to
 
+
+
 ## Core Workflows
+
+### Upgrade Iago version
+
+> Upgrade Iago version
+
+Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, `/iago-upgrade-version`.
 
 ### Daily search
 
@@ -129,23 +187,25 @@ Point `profile.resume_path` at your master resume for fit scoring during search 
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
 
-When the example template gains new keys (e.g. `integrations.resume_matcher.enabled`), merge them into your existing `data/config.yaml` without overwriting your values:
+When the example template gains new keys, merge them into your existing `data/config.yaml` without overwriting your values. See [Upgrading Iago](#upgrading-iago) for the full flow; quick version:
 
 ```bash
-bash scripts/reconcile-config.sh --dry-run   # preview keys to add
-bash scripts/reconcile-config.sh             # apply (creates a timestamped .bak backup)
+bash scripts/upgrade-iago-version.sh --dry-run   # preview keys to add
+bash scripts/upgrade-iago-version.sh             # pull + merge new keys
 ```
 
-Requires `pip3 install ruamel.yaml` (preserves YAML comments).
+
 
 ### Status updates
 
 Use `update-application` so status changes chain follow-on work automatically:
 
-| Action | Command example | Chained skill |
-|--------|-----------------|---------------|
-| Shortlist | `Shortlist [Company]` | `company-research` (saves JD + role brief) |
-| Apply | `Set [Company] to applied on [date]` | `interview-prep` (talking points) |
+
+| Action    | Command example                      | Chained skill                              |
+| --------- | ------------------------------------ | ------------------------------------------ |
+| Shortlist | `Shortlist [Company]`                | `company-research` (saves JD + role brief) |
+| Apply     | `Set [Company] to applied on [date]` | `interview-prep` (talking points)          |
+
 
 Pipeline review also runs `company-research` when you confirm a `discovered` -> `shortlisted` promotion.
 
@@ -188,73 +248,44 @@ iago/
   .cursor/skills/
     iago-daily/                    # Daily search; /iago, /iago-daily
     iago-setup/                    # Onboarding; /iago-setup
+    iago-upgrade-version/          # Version upgrade; /iago-upgrade-version
     iago-pipeline-review/          # Pipeline triage; /iago-pipeline
-    update-application/            # Tracker updates; /iago-update
+    update-application/            # Tracker updates; /iago-update, /update-application
     company-research/              # Role brief; /iago-brief
     interview-prep/                # Talking points; /iago-interview
     resume-feedback/               # Resume review; /iago-feedback
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, run-daily-search.sh
+  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, upgrade-iago-version.sh, run-daily-search.sh, sync-daily-driver.sh (maintainer)
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
 ```
 
+
+
 ### Local data
 
 Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-Matcher) (`apps/backend/data/`): personal files live in a gitignored directory inside the repo.
 
-| File | Purpose |
-|------|---------|
-| `config.yaml` | Search criteria, sources, fit rubric |
-| `applications.yaml` | Application pipeline tracker |
-| `seen-jobs.yaml` | Dedup index |
-| `recruiters.yaml` | Recruiter outreach (optional) |
-| `daily-runs/YYYY-MM-DD.md` | Daily search reports |
-| `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports |
-| `company-research/` | Role briefs (auto when shortlisted) |
-| `jds/` | Full job descriptions (auto when shortlisted) |
-| `interview-prep/` | Interview prep (auto when applied) |
-| `resume-feedback/` | Resume feedback artifacts |
-| `logs/` | CLI run logs |
+
+| File                             | Purpose                                       |
+| -------------------------------- | --------------------------------------------- |
+| `config.yaml`                    | Search criteria, sources, fit rubric          |
+| `applications.yaml`              | Application pipeline tracker                  |
+| `seen-jobs.yaml`                 | Dedup index                                   |
+| `recruiters.yaml`                | Recruiter outreach (optional)                 |
+| `daily-runs/YYYY-MM-DD.md`       | Daily search reports                          |
+| `pipeline-reviews/YYYY-MM-DD.md` | Pipeline triage and prioritization reports    |
+| `company-research/`              | Role briefs (auto when shortlisted)           |
+| `jds/`                           | Full job descriptions (auto when shortlisted) |
+| `interview-prep/`                | Interview prep (auto when applied)            |
+| `resume-feedback/`               | Resume feedback artifacts                     |
+| `logs/`                          | CLI run logs                                  |
+
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
-
-## Automation
-
-### Scheduled daily search on macOS
-
-```bash
-chmod +x scripts/*.sh
-# Replace __REPO_ROOT__ in scripts/com.example.iago-daily.plist with your clone path
-cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist
-```
-
-If you previously scheduled the old `com.example.job-search-daily` agent, unload and remove it first:
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist
-rm ~/Library/LaunchAgents/com.example.job-search-daily.plist
-```
-
-This is optional. You can also just run the search manually from Cursor chat.
-
-## Post-merge checklist (repo rename)
-
-Clone and issue links in this repo assume the GitHub repo is named `iago`. After merging the Iago rebrand:
-
-1. Rename the GitHub repo to `iago` on github.com
-2. `git remote set-url origin git@github.com:lachlanmag/iago.git`
-3. Optionally rename your local clone directory to `iago`
-4. If launchd is loaded: `launchctl unload ~/Library/LaunchAgents/com.example.job-search-daily.plist`
-5. Remove `~/Library/LaunchAgents/com.example.job-search-daily.plist`
-6. Set `__REPO_ROOT__` in `scripts/com.example.iago-daily.plist`
-7. `cp scripts/com.example.iago-daily.plist ~/Library/LaunchAgents/`
-8. `launchctl load ~/Library/LaunchAgents/com.example.iago-daily.plist`
-9. Re-open the repo in Cursor from the new folder path
 
 ## Roadmap
 

@@ -101,7 +101,7 @@ Suggest keeping the resume outside this repo.
 
 ### 3. Roles
 
-Present default `role_priority` from example config. Ask user to confirm or reorder. Typical order: PM → Senior PM → PO → Senior PO → BA → Senior BA. Drop titles they do not want.
+Present default `role_priority` from example config (PM-focused example). Ask user to confirm, reorder, or replace with their target titles.
 
 ### 4. Location rules
 
@@ -136,7 +136,7 @@ Use labels from `industry_labels` in config when possible.
 ### 7. Resume fit
 
 1. Read the file at `profile.resume_path`.
-2. Suggest 4–6 `resume_fit.core_themes` tailored to PM/PO/BA search.
+2. Suggest 4–6 `resume_fit.core_themes` tailored to the user's target roles.
 3. Suggest optional `resume_fit.proof_points` (concrete highlights from resume).
 4. Present suggestions; user confirms or edits.
 5. Leave `flag_strong`, `flag_good`, `flag_stretch`, `levels`, `strong_signals`, `stretch_signals` at example defaults.
@@ -197,7 +197,7 @@ Summarize:
 - Enabled search boards (names)
 - Skills status (auto-discovered at repo root, or installed to `~/.cursor/skills/`)
 - **Next step:** Run the daily job search (`iago-daily` or "Run the daily job search")
-- After repo upgrades: `bash "$REPO_ROOT/scripts/reconcile-config.sh"`
+- After version upgrades: run `iago-upgrade-version` ("Upgrade Iago version") or `bash "$REPO_ROOT/scripts/upgrade-iago-version.sh"`
 
 ## Default board reference
 
@@ -205,7 +205,6 @@ When resolving URLs, start from `examples/config.example.yaml` → `search_sourc
 
 ## Out of scope
 
-- Launchd plist substitution
 - Regional presets or source catalog
 - Config validation script
 - Importing applications from spreadsheet
