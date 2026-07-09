@@ -46,7 +46,7 @@ resolve_cursor() {
 CURSOR="$(resolve_cursor)"
 
 PROMPT="$(cat <<EOF
-Read and follow the iago-daily skill at .cursor/skills/iago-daily/SKILL.md in this workspace.
+Read and follow skills/iago-daily/WORKFLOW.md in this workspace.
 
 Run date (${IAGO_TZ}): ${RUN_DATE}
 Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks: not the system UTC date.
