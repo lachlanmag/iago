@@ -6,6 +6,8 @@ Issue numbers link to open tickets. Merged duplicates are noted inline.
 
 ## Skills
 
+Dual-platform skill layout (Cursor + Claude Code) shipped via [#33](https://github.com/lachlanmag/iago/issues/33). Canonical workflow content lives in `skills/`; platform entrypoints install to `.cursor/skills/` and `.claude/skills/`.
+
 | Skill | Status | Issue | Purpose |
 |-------|--------|-------|---------|
 | `iago-daily` | **Shipped** | n/a | Daily search, dedup, QA gate, fit scoring, tracker updates, daily report |

@@ -8,7 +8,7 @@ A Cursor-native workflow for sourcing tech roles and tracking applications. Righ
 
 ### Prerequisites
 
-- [Cursor](https://cursor.com) with Agent
+- [Cursor](https://cursor.com) with Agent, or [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as an optional alternative
 - Network access for job board search
 - For headless runs: `cursor agent login` (once)
 
@@ -41,7 +41,7 @@ The setup skill initializes `data/` if needed, then walks you through location, 
 
 ### Cursor skills
 
-Iago skills ship in `.cursor/skills/`. Cursor discovers them automatically when this repo is the workspace root.
+Iago skills ship in `.cursor/skills/`; canonical workflow content lives in `skills/` at the repo root (shared with Claude Code). Cursor discovers them automatically when this repo is the workspace root.
 
 If your workspace is a **parent folder** (e.g. Obsidian vault + several git repos), there is no settings toggle for a custom skills path. Use one of these instead:
 
@@ -103,6 +103,20 @@ IAGO_DAILY_DRIVER_ROOT=/path/to/daily-driver bash scripts/sync-daily-driver.sh  
 
 One-time daily-driver checkout: `git worktree add /path/to/iago-daily main` from the dev clone (a second full clone works too). Future contributors only need fork + PR on one clone.
 
+### Claude Code skills
+
+Skills install to `.claude/skills/`; canonical workflow content lives in `skills/` at the repo root. Open the repo root as your workspace.
+
+For a **parent workspace** (e.g. Obsidian vault + several git repos), install from the Iago clone:
+
+```bash
+cd /path/to/your/iago-clone
+bash scripts/install-skills.sh --platform claude
+# or: bash scripts/install-skills.sh --platform both
+```
+
+Same chat triggers as Cursor (e.g. "Run the daily job search", "Set up job search", `/iago-daily`).
+
 ## How It Works
 
 1. **Search for roles** with the daily search workflow.
@@ -154,6 +168,8 @@ Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, `/iago-
 Trigger phrases: daily job search, job hunt, find new jobs, `/iago`, `/iago-daily`.
 
 **Headless (Cursor Agent CLI):**
+
+Headless daily search requires the [Cursor Agent CLI](https://cursor.com/docs/agent/cli). Claude Code headless support is tracked in [#34](https://github.com/lachlanmag/iago/issues/34).
 
 ```bash
 bash scripts/run-daily-search.sh
@@ -245,7 +261,15 @@ Trigger phrases: talking points, `/iago-interview`, `/interview-prep`. Runs auto
 
 ```
 iago/
-  .cursor/skills/
+  skills/                            # Canonical workflow content (shared by both platforms)
+    iago-daily/
+    iago-setup/
+    iago-pipeline-review/
+    update-application/
+    company-research/
+    interview-prep/
+    resume-feedback/
+  .cursor/skills/                    # Cursor skill entrypoints (symlinked or copied from skills/)
     iago-daily/                    # Daily search; /iago, /iago-daily
     iago-setup/                    # Onboarding; /iago-setup
     iago-upgrade-version/          # Version upgrade; /iago-upgrade-version
@@ -254,6 +278,14 @@ iago/
     company-research/              # Role brief; /iago-brief
     interview-prep/                # Talking points; /iago-interview
     resume-feedback/               # Resume review; /iago-feedback
+  .claude/skills/                    # Claude Code skill entrypoints (symlinked or copied from skills/)
+    iago-daily/
+    iago-setup/
+    iago-pipeline-review/
+    update-application/
+    company-research/
+    interview-prep/
+    resume-feedback/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
