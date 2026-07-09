@@ -55,9 +55,9 @@ When workspace root ≠ `REPO_ROOT`, always prefix file paths and scripts with `
 6. **Resume fit:** Score every role against `config.yaml` → `resume_fit` and the file at `profile.resume_path`. Set `resume_fit` to `strong`, `good`, `stretch`, or `weak` with a one-line `resume_fit_note`. Show flags: **✓ strong resume fit**, **✓ resume fit**, or **~ stretch fit**. Independent from industry ★/⚠.
 7. **Work model:** Follow `preferences.work_model` for local roles.
 8. **AI exposure:** Bonus only: do not filter roles out for lacking AI.
-9. **Links:** Direct job listing URLs only (not search result pages).
-10. **Listing freshness (at intake):** Before adding any role to the candidate pool, check the listing page for expiry/closed signals and closing dates. A visible job description alone is **not** proof the role is open.
-11. **Dedup:** Before saving any role, run duplicate detection. Store the **canonical** (most direct) URL only.
+9. **Links:** Prefer the strongest direct listing URL available, but do **not** reject a role only because no non-aggregator direct link exists. Save the best available live listing page, not search result pages.
+10. **Listing freshness (at intake):** Before adding any role to the candidate pool, check the best available listing page for expiry/closed signals and closing dates. A visible job description alone is **not** proof the role is open.
+11. **Dedup:** Before saving any role, run duplicate detection. Store the strongest verified canonical URL available for that role, even if it is an aggregator page.
 12. **QA gate:** Before writing tracker files, run the mandatory **QA gate** (step 5). No role is saved or recommended in top picks until it passes.
 
 ## Daily workflow
@@ -77,7 +77,7 @@ Prefer company ATS and gov direct links over aggregators. Use browser when SPA s
 
 ### 2a. Listing freshness at intake (required during search)
 
-For **every** candidate role found during search: before scoring, tiering, or adding to the candidate pool: open the **canonical** listing URL and verify it is still accepting applications.
+For **every** candidate role found during search: before scoring, tiering, or adding to the candidate pool: identify the **best available listing page**, verify it is still accepting applications, and keep trying to upgrade to a stronger direct listing when possible.
 
 Read `config.yaml` → `listing_freshness`. Apply these rules:
 
@@ -86,7 +86,8 @@ Read `config.yaml` → `listing_freshness`. Apply these rules:
 | **Closed signals** | If page text matches any `closed_signals` phrase (case-insensitive), **skip immediately**. Log in daily report **Skipped expired / closed**. |
 | **Closing date** | If `date_fields` show a date, parse it. Past date → skip. Within `closing_soon_days` → keep but flag **closing soon** in report. |
 | **Open proof** | Require evidence from `open_proof`: active Apply control, no expired banner, URL resolves. Follow `board_hints`. |
-| **Aggregator hits** | Resolve to employer ATS first, then run freshness check on the ATS URL: not the aggregator page alone. |
+| **Direct-link upgrade** | If a stronger direct ATS/company/recruiter/gov listing can be found, use it as canonical. |
+| **Aggregator fallback** | If no stronger direct page can be found, keep the best available live listing page as canonical if it clearly looks like a real open job listing. |
 | **Archived JD trap** | If full JD is visible but an expired/closed banner exists, treat as **closed** regardless of body text. |
 
 Record on each passing candidate (internal notes until save):
@@ -94,6 +95,20 @@ Record on each passing candidate (internal notes until save):
 - `listing_verified: YYYY-MM-DD`
 - `closes: YYYY-MM-DD` (if known)
 - `closing_soon: true/false`
+- `listing_proof: strong|medium|weak`
+- `hidden_employer: true|false`
+- `canonical_source_type: company_ats|company_careers|recruiter_direct|aggregator|gov_direct|niche_board|council_portal`
+- optional `inferred_employer:` note when the employer is hidden but the JD strongly suggests one or more likely companies
+
+**Proof strength (`listing_proof`):**
+
+| Value | When to use |
+|-------|-------------|
+| `strong` | Direct ATS or official company page; active Apply control; no closed signal; enough JD detail to confirm it is a real listing |
+| `medium` | Credible live listing from aggregator or recruiter page; active Apply/Quick Apply; no closed signal; substantial JD content |
+| `weak` | Listing probably live but confidence is lower: hidden employer, thin metadata, weaker application-flow visibility, or partial open proof without contradiction |
+
+`weak` listings may still be saved when they pass intake and QA with no closed signals.
 
 **Do not** add roles that fail intake freshness to the candidate pool or tracker.
 
@@ -107,7 +122,7 @@ For every candidate role, check against the dedup index using `config.yaml` → 
 | `ats_job_id` | Extract ID from `jobs.lever.co/{company}/{id}`, `jobs.workable.com/view/{id}`, `boards.greenhouse.io/{company}/jobs/{id}`, `jobs.ashbyhq.com/{company}/{id}` |
 | `company_title_location` | Normalized company + title + location bucket per `deduplication.normalize` |
 
-**If duplicate found:** do not create a new tracker row. If the new source has a **more direct** URL per `deduplication.canonical_url_priority`, update the existing entry's `url` and move the old URL to `alternate_urls`.
+**If duplicate found:** do not create a new tracker row. Compare both URLs against `deduplication.canonical_url_priority`. If the new source ranks **higher** and both pages are verified live, update the existing entry's `url` and move the old URL to `alternate_urls`. If the existing URL ranks higher, or only the existing URL is verified live, keep the existing canonical URL (even when it is an aggregator page).
 
 **Canonical URL priority** (highest wins):
 
@@ -119,7 +134,7 @@ For every candidate role, check against the dedup index using `config.yaml` → 
 6. Niche board
 7. Aggregator (SEEK, LinkedIn, Indeed, Jora, Hatch wrapper)
 
-**Aggregator resolution:** When a role is found on an aggregator, follow the apply link to find the employer ATS or careers URL. Save that as `url`. Record the aggregator link in `alternate_urls` only.
+**Aggregator resolution:** When a role is found on an aggregator, follow the apply link to find the employer ATS or careers URL when possible. If a stronger direct listing is found and verified open, save that as `url` and record the aggregator link in `alternate_urls`. If no stronger direct listing can be found, save the live aggregator listing itself as canonical and mark its proof strength explicitly.
 
 Log dedup actions in the daily run report section **Deduped this run**.
 
@@ -135,9 +150,9 @@ Output tiers (adapt to user's `role_priority`, `location_rules`, and `preference
 | **Tier 4** | Remote (country) + highest `role_priority` (outside local metro) |
 | **Tier 5** | Remote (country) + secondary `role_priority` |
 
-For each role include: company, title, industry, **resume fit flag**, location, work model, why it fits (1 line), direct URL, tier.
+For each role include: company, title, industry, **flags**, location, work model, why it fits (1 line), canonical URL, tier.
 
-**Flag legend (independent: combine as needed):**
+**Flag legend (combine as needed in the report `Flags` column):**
 
 | Flag | Source | Meaning |
 |------|--------|---------|
@@ -146,6 +161,9 @@ For each role include: company, title, industry, **resume fit flag**, location, 
 | ~ stretch fit | `resume_fit: stretch` | Transferable but gaps in domain/craft |
 | ★ industry focus | `industry_awareness.actively_targeting` or `preferences.industry_focus` | Industry you're pivoting into |
 | ⚠ prefer to avoid | `industry_awareness.prefer_to_avoid` | Industry heads-up before applying |
+| hidden employer | `hidden_employer: true` | Listing does not directly confirm the employer identity |
+| medium proof | `listing_proof: medium` | Open status looks credible, but evidence is weaker than a strong direct listing |
+| weak proof | `listing_proof: weak` | Best available live listing passed QA, but should be treated as lower-confidence |
 
 Skip roles already in tracker with status `applied`, `interview`, `rejected`, `withdrawn`, `offer`, or `closed`.
 
@@ -161,9 +179,9 @@ Run every check in `qa_gate.checks`:
 
 | Check | What to do |
 |-------|------------|
-| **dedup_all_candidates** | Re-run step 2b on full candidate set. Merge URL upgrades; remove duplicate rows. |
-| **verify_listing_open** | Re-fetch each candidate's canonical URL. Re-apply `listing_freshness` rules. Fail = exclude from save. |
-| **verify_url_resolves** | Canonical URL must not 404. Use browser for SPAs that block curl. |
+| **dedup_all_candidates** | Re-run step 2b on full candidate set. Keep the higher-priority canonical URL when both duplicates are verified live; otherwise keep the stronger verified live URL. Merge upgrades; remove duplicate rows. |
+| **verify_listing_open** | Re-fetch each candidate's chosen canonical listing page. Re-apply `listing_freshness` rules. Fail = exclude from save. Aggregator pages may pass when they are the best available live listing. |
+| **verify_url_resolves** | Canonical URL must resolve to a usable listing page, not necessarily a direct employer site. Use browser for SPAs that block curl. |
 | **spot_check_tracker** | Re-verify all `discovered` and `shortlisted` rows in `applications.yaml`. Past closing date or closed banner → set `status: closed`. |
 | **reconcile_top_picks** | Top 3 apply picks must each pass `verify_listing_open`. Swap in next eligible role if any fail. |
 
@@ -172,6 +190,12 @@ Run every check in `qa_gate.checks`:
 - **New role:** do not append to tracker files; log reason in **QA gate** report section.
 - **Existing tracker role:** update `status: closed` with note; list under **Closed since last run**.
 - **Top pick:** replace with next passing role.
+
+In the **QA gate** report section, note when relevant:
+
+- a stronger direct link was found and promoted to canonical
+- no direct link was found, so the aggregator page was retained as canonical
+- a hidden-employer role was saved with weaker proof (`medium` or `weak`)
 
 ### 6. Write daily run report
 
@@ -184,7 +208,7 @@ Create or overwrite:
 #### Above the fold (read this first)
 
 1. **Summary**: 3–5 bullets: new roles saved, closed since last run, market read, **Prioritize today** (top 3 QA-verified picks)
-2. **New roles this run**: tiered table (Tier, Company, Title, Industry, Flags, Location, Work model, Closes, Link)
+2. **New roles this run**: tiered table (Tier, Company, Title, Industry, Flags, Location, Work model, Closes, Link). Flags should include industry focus, hidden-employer status, and proof strength when relevant.
 3. **Application pipeline**: status counts from `applications.yaml`
 4. **Shortlist**: all `shortlisted` rows with listing status and next action
 5. **Open tracker**: `discovered` rows worth revisiting (QA-verified this run)
@@ -195,17 +219,26 @@ Create or overwrite:
 
 8. **Skipped expired / closed**
 9. **Closing soon**
-10. **QA gate**
-11. **Deduped this run**
-12. **Sources checked**
+10. **Lower-confidence open roles**
+11. **QA gate**
+12. **Deduped this run**
+13. **Sources checked**
+
+**Lower-confidence open roles** (section 10): list roles saved this run with `listing_proof: medium` or `weak`, and/or `hidden_employer: true`. Use a short table or bullet list with Company, Title, proof strength, and Link. If an inferred employer hint exists, include it explicitly, for example:
+
+- `Likely employer (inferred): Best Practice Software`
+- `Possible employers (inferred): Best Practice Software, Genie Solutions`
+
+Never present inferred identity as confirmed fact.
 
 Use `---` between major sections.
 
 ### 7. Update tracker files (only after QA gate passes)
 
 - Write **only** roles that passed step 5 QA gate.
-- Append genuinely **new** roles to `$REPO_ROOT/data/applications.yaml` with `status: discovered`, `industry`, `resume_fit`, `resume_fit_note`, canonical `url`, `discovered: YYYY-MM-DD`.
-- Append to `$REPO_ROOT/data/seen-jobs.yaml` with `first_seen`, canonical `url`, optional `alternate_urls`, `ats_id`, and `listing_verified: YYYY-MM-DD`.
+- Append genuinely **new** roles to `$REPO_ROOT/data/applications.yaml` with `status: discovered`, `industry`, `resume_fit`, `resume_fit_note`, canonical `url`, `discovered: YYYY-MM-DD`, and when known `listing_verified`, `listing_proof`, `hidden_employer`, `canonical_source_type`.
+- Append to `$REPO_ROOT/data/seen-jobs.yaml` with `first_seen`, canonical `url`, optional `alternate_urls`, `ats_id`, `listing_verified: YYYY-MM-DD`, and when known `listing_proof`, `hidden_employer`, `canonical_source_type`.
+- When the employer is hidden, keep the canonical `company` field generic (for example `Private Advertiser` or recruiter name) unless the listing directly evidences the employer. If the JD strongly suggests one or more likely employers, include that only as an explicitly labeled inferred note or report flag, never as confirmed company identity. Use evidence such as location, industry, product domain, salary band, customer type, and watch-company matches. If multiple employers are plausible, preserve the ambiguity rather than forcing one name.
 - When a duplicate has a better canonical URL, update the existing entry's `url` (do not duplicate rows).
 - Set `status: closed` on existing rows only when QA spot-check or search verified the listing closed.
 
@@ -239,7 +272,7 @@ End with:
 | SEEK | Detail page says no longer accepting | Skip; do not save from search snippet |
 | Lever | 404 or missing Apply | Skip; mark closed if already in tracker |
 | Gov boards | Closing date in the past | Skip or set tracker `closed` |
-| Aggregator | Only aggregator page checked; ATS not verified | Resolve ATS URL and verify open there |
+| Aggregator | Page is only a search/snippet result, or the listing lacks enough open proof | Skip; do not save unless the best available live listing page clearly looks open |
 
 ## Manual commands
 
