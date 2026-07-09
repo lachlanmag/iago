@@ -325,4 +325,4 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned skills, Obsidian compatibilit
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+GPL-3.0-only. See [LICENSE](LICENSE).
