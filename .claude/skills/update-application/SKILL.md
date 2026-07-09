@@ -10,7 +10,7 @@ description: >-
   [Company], reject [Company], or runs /iago-update or /update-application.
 ---
 
-# Update application (Cursor)
+# Update application (Claude Code)
 
 **Mandatory:** Read and follow `$REPO_ROOT/skills/update-application/WORKFLOW.md` before executing this skill. Do not skip or summarize it.
 
@@ -20,14 +20,14 @@ Set `REPO_ROOT` before reading files or running scripts.
 
 | Method | When |
 |--------|------|
-| Workspace contains `.cursor/skills/update-application/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
-| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
-| Global skill symlink | `readlink -f "$HOME/.cursor/skills/update-application"` → parent of `.cursor/skills` on resolved path |
+| Workspace contains `.claude/skills/update-application/SKILL.md` | `REPO_ROOT` = workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.claude/skills` |
+| Global skill symlink | `readlink -f "$HOME/.claude/skills/update-application"` → parent of `.claude/skills` on resolved path |
 | Nested under parent workspace | `bash "$REPO_ROOT/scripts/verify-workspace.sh"`; `REPO_ROOT` = parent of `scripts/` |
 | Still unknown | Ask user for the Iago clone path |
 
 When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$REPO_ROOT`.
 
-## Cursor-specific
+## Claude Code-specific
 
-- Chained skills (`company-research`, `interview-prep`) run in the same turn after tracker writes; no separate user prompt required.
+- Ask clarifying questions in chat when the workflow requires user input (ambiguous company/title, status transitions, dates, channels).
