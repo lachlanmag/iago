@@ -62,7 +62,7 @@ else
   fi
 fi
 
-if ! git -C "$REPO_ROOT" worktree list --porcelain | grep -q "^worktree $PROD_ROOT$"; then
+if ! git -C "$REPO_ROOT" worktree list --porcelain | grep -qFx "worktree $PROD_ROOT"; then
   echo "error: prod worktree not found at $PROD_ROOT" >&2
   echo "hint: git -C \"$REPO_ROOT\" worktree list" >&2
   exit 1
