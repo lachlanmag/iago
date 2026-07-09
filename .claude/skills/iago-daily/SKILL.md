@@ -8,7 +8,7 @@ description: >-
   boards, update the tracker from today's search, or runs /iago or /iago-daily.
 ---
 
-# Daily job search (Cursor)
+# Daily job search (Claude Code)
 
 **Mandatory:** Read and follow `$REPO_ROOT/skills/iago-daily/WORKFLOW.md` before executing this skill. Do not skip or summarize it.
 
@@ -18,15 +18,15 @@ Set `REPO_ROOT` before reading files or running scripts.
 
 | Method | When |
 |--------|------|
-| Workspace contains `.cursor/skills/iago-daily/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
-| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
-| Global skill symlink | `readlink -f "$HOME/.cursor/skills/iago-daily"` → parent of `.cursor/skills` on resolved path |
+| Workspace contains `.claude/skills/iago-daily/SKILL.md` | `REPO_ROOT` = workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.claude/skills` |
+| Global skill symlink | `readlink -f "$HOME/.claude/skills/iago-daily"` → parent of `.claude/skills` on resolved path |
 | Nested under parent workspace | `bash "$REPO_ROOT/scripts/verify-workspace.sh"`; `REPO_ROOT` = parent of `scripts/` |
 | Still unknown | Ask user for the Iago clone path |
 
 When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$REPO_ROOT`.
 
-## Cursor-specific
+## Claude Code-specific
 
-- Cursor Automation or `/loop` can trigger this skill (e.g. `/loop 1d Run the daily job search`).
-- Headless: `bash "$REPO_ROOT/scripts/run-daily-search.sh"` (Cursor Agent CLI only).
+- Ask clarifying questions in chat when the workflow requires user input.
+- Headless scheduled runs are Cursor-only for now ([#34](https://github.com/lachlanmag/iago/issues/34)).

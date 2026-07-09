@@ -8,10 +8,9 @@ description: >-
   review, review my resume, review my tailored resume, ATS review for [Company],
   check my resume against the JD, tailoring quality check, is this resume ready
   to submit, or runs /iago-feedback or /resume-feedback.
-disable-model-invocation: true
 ---
 
-# Resume feedback (Cursor)
+# Resume feedback (Claude Code)
 
 **Mandatory:** Read and follow `$REPO_ROOT/skills/resume-feedback/WORKFLOW.md` before executing this skill. Do not skip or summarize it.
 
@@ -21,14 +20,15 @@ Set `REPO_ROOT` before reading files or running scripts.
 
 | Method | When |
 |--------|------|
-| Workspace contains `.cursor/skills/resume-feedback/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
-| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
-| Global skill symlink | `readlink -f "$HOME/.cursor/skills/resume-feedback"` → parent of `.cursor/skills` on resolved path |
+| Workspace contains `.claude/skills/resume-feedback/SKILL.md` | `REPO_ROOT` = workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.claude/skills` |
+| Global skill symlink | `readlink -f "$HOME/.claude/skills/resume-feedback"` → parent of `.claude/skills` on resolved path |
 | Nested under parent workspace | `bash "$REPO_ROOT/scripts/verify-workspace.sh"`; `REPO_ROOT` = parent of `scripts/` |
 | Still unknown | Ask user for the Iago clone path |
 
 When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$REPO_ROOT`.
 
-## Cursor-specific
+## Claude Code-specific
 
-- `disable-model-invocation: true` ensures the skill runs in the active agent session with full tool access for JD fetch and artifact writes.
+- Ask clarifying questions in chat when resume source, JD, or company/title is ambiguous.
+- `disable-model-invocation` is Cursor-only; not set on this wrapper.
