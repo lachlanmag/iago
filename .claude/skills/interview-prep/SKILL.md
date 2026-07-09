@@ -10,7 +10,7 @@ description: >-
   /interview-prep.
 ---
 
-# Interview prep (Cursor)
+# Interview prep (Claude Code)
 
 **Mandatory:** Read and follow `$REPO_ROOT/skills/interview-prep/WORKFLOW.md` before executing this skill. Do not skip or summarize it.
 
@@ -20,14 +20,15 @@ Set `REPO_ROOT` before reading files or running scripts.
 
 | Method | When |
 |--------|------|
-| Workspace contains `.cursor/skills/interview-prep/SKILL.md` | `REPO_ROOT` = Cursor workspace root |
-| Skill loaded from this repo | `REPO_ROOT` = parent of `.cursor/skills` |
-| Global skill symlink | `readlink -f "$HOME/.cursor/skills/interview-prep"` → parent of `.cursor/skills` on resolved path |
+| Workspace contains `.claude/skills/interview-prep/SKILL.md` | `REPO_ROOT` = workspace root |
+| Skill loaded from this repo | `REPO_ROOT` = parent of `.claude/skills` |
+| Global skill symlink | `readlink -f "$HOME/.claude/skills/interview-prep"` → parent of `.claude/skills` on resolved path |
 | Nested under parent workspace | `bash "$REPO_ROOT/scripts/verify-workspace.sh"`; `REPO_ROOT` = parent of `scripts/` |
 | Still unknown | Ask user for the Iago clone path |
 
 When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$REPO_ROOT`.
 
-## Cursor-specific
+## Claude Code-specific
 
+- Ask clarifying questions in chat when company/title or JD source is ambiguous.
 - Chained from `update-application` in the same turn after apply writes.

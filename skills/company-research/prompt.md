@@ -39,7 +39,7 @@ Use these headings exactly:
 - Must-have requirements
 - Nice-to-have requirements
 - Team / reporting hints from JD
-- Role craft signals (discovery, delivery, stakeholders, domain) appropriate to the role type
+- PM/PO/BA craft signals (discovery, delivery, stakeholders, domain)
 
 ## Fit vs your profile
 - Strong alignment (tie to resume themes with evidence)
