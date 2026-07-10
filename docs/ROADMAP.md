@@ -1,6 +1,6 @@
 # Roadmap
 
-Prioritized backlog for the Iago Cursor workflow. Remaining items are tracked as [GitHub issues](https://github.com/lachlanmag/iago/issues).
+Prioritized backlog for the Iago workflow (Cursor, Claude Code, and LM Studio). Remaining items are tracked as [GitHub issues](https://github.com/lachlanmag/iago/issues).
 
 Issue numbers link to open tickets. Merged duplicates are noted inline.
 
@@ -10,7 +10,7 @@ What works today, grouped by area. Skills are listed in full below; other shippe
 
 ### Skills
 
-Canonical workflow content lives in `skills/`. Platform entrypoints install to `.cursor/skills/` and `.claude/skills/` ([#33](https://github.com/lachlanmag/iago/issues/33) / [PR #38](https://github.com/lachlanmag/iago/pull/38)).
+Canonical workflow content lives in `skills/`. Platform entrypoints live under `.cursor/skills/`, `.claude/skills/`, and (in progress) `.lmstudio/skills/` ([#33](https://github.com/lachlanmag/iago/issues/33) / [PR #38](https://github.com/lachlanmag/iago/pull/38); LM Studio [#36](https://github.com/lachlanmag/iago/issues/36)).
 
 
 | Skill                  | Status      | Issue                                             | Purpose                                                                                                          |
@@ -29,7 +29,7 @@ Canonical workflow content lives in `skills/`. Platform entrypoints install to `
 
 ### Platforms
 
-Cursor and Claude Code both run the same skill workflows via shared `skills/` plus thin wrappers ([#33](https://github.com/lachlanmag/iago/issues/33) / [PR #38](https://github.com/lachlanmag/iago/pull/38)). 
+Cursor and Claude Code run the same skill workflows via shared `skills/` plus thin wrappers ([#33](https://github.com/lachlanmag/iago/issues/33) / [PR #38](https://github.com/lachlanmag/iago/pull/38)). LM Studio interactive support (khtsly/skills + `.lmstudio/skills/`) is **in progress** on [#36](https://github.com/lachlanmag/iago/issues/36) / [PR #41](https://github.com/lachlanmag/iago/pull/41); move to Shipped after mid-bar smoke.
 
 ### Search quality
 

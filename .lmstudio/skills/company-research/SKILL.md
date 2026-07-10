@@ -34,5 +34,4 @@ When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$RE
 - Run repo scripts with `run_command` (e.g. `bash "$REPO_ROOT/scripts/verify-workspace.sh"`).
 - Web fetch: `run_command` + curl by default; optional [web-visit](https://lmstudio.ai/khtsly) if pages block curl.
 - No headless runner and no `/loop`; re-activate the skill in chat. Automation is tracked in [#40](https://github.com/lachlanmag/iago/issues/40).
-- Ask in chat when company/title or JD source is ambiguous.
-- For SPA/career pages that block curl, try optional khtsly web-visit.
+- Ask in chat when company/title or JD source is ambiguous (use web-visit for SPA pages that block curl).

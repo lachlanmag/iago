@@ -294,7 +294,7 @@ iago/
     company-research/
     interview-prep/
     resume-feedback/
-  .lmstudio/skills/                  # LM Studio skill entrypoints (symlinked or copied from skills/)
+  .lmstudio/skills/                  # LM Studio thin entrypoints (tracked in-repo; point khtsly here)
     iago-daily/
     iago-setup/
     iago-pipeline-review/

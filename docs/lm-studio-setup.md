@@ -72,7 +72,7 @@ Expect updates under `data/daily-runs/` and `data/applications.yaml` (or your co
 
 ## 7. Other skills
 
-Same slash names as Cursor/Claude, for example:
+khtsly activates skills with `/<folder-name>` (for example `/iago-daily`). Frontmatter also lists Cursor-style aliases (`/iago-pipeline`, `/pipeline-review`, and so on); if a short alias does not expand, use the folder name form.
 
 | Skill | Example |
 |-------|---------|

@@ -111,18 +111,19 @@ if [[ "$WORKSPACE_ROOT" == "$REPO_ROOT" ]]; then
   exit 0
 fi
 
-install_hint="bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both   # or --platform lmstudio"
 open_hint="Open $REPO_ROOT as the workspace root (Cursor, Claude Code, or LM Studio chat)"
+cursor_claude_hint="Cursor/Claude parent workspace: bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
+lmstudio_hint="LM Studio: open chat with workspace=$REPO_ROOT (install-skills --platform lmstudio only prints the Skills Directory path; it does not fix a wrong workspace)"
 
 # Workspace is a parent or sibling: nested/monorepo layout
 if [[ "$REPO_ROOT" == "$WORKSPACE_ROOT"/* ]]; then
   echo "workspace_matches_repo=no"
   echo "layout=nested"
-  echo "hint=$open_hint, or run: $install_hint"
+  echo "hint=$open_hint. $cursor_claude_hint. $lmstudio_hint"
   exit 2
 fi
 
 echo "workspace_matches_repo=no"
 echo "layout=external"
-echo "hint=$open_hint, or run: $install_hint"
+echo "hint=$open_hint. $cursor_claude_hint. $lmstudio_hint"
 exit 2
