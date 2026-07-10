@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check that Iago skills are reachable from the Cursor or Claude Code workspace.
+# Check that Iago skills are reachable from the Cursor, Claude Code, or LM Studio workspace.
 # Exit 0: workspace root matches repo root (project skills auto-discover).
 # Exit 2: repo ok but workspace root differs (run install-skills.sh or re-open folder).
 # Exit 1: skills missing at repo root.
@@ -12,14 +12,15 @@ WORKSPACE_ROOT=""
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--platform cursor|claude] [workspace-root]
+Usage: $(basename "$0") [--platform cursor|claude|lmstudio|both] [workspace-root]
 
 Verify Iago skill layout at repo root and workspace layout.
 
 Platforms:
-  both    Check .cursor/ and .claude/ skill trees (default)
-  cursor  Check .cursor/skills/iago-setup/SKILL.md only
-  claude  Check .claude/skills/iago-setup/SKILL.md only
+  both      Check .cursor/, .claude/, and .lmstudio/ (default: any one present)
+  cursor    Check .cursor/skills/iago-setup/SKILL.md only
+  claude    Check .claude/skills/iago-setup/SKILL.md only
+  lmstudio  Check .lmstudio/skills/iago-setup/SKILL.md only
 EOF
 }
 
@@ -74,6 +75,7 @@ echo "workspace_root=$WORKSPACE_ROOT"
 
 cursor_skill="$REPO_ROOT/.cursor/skills/iago-setup/SKILL.md"
 claude_skill="$REPO_ROOT/.claude/skills/iago-setup/SKILL.md"
+lmstudio_skill="$REPO_ROOT/.lmstudio/skills/iago-setup/SKILL.md"
 
 skills_ok=false
 case "$platform" in
@@ -83,11 +85,14 @@ case "$platform" in
   claude)
     [[ -f "$claude_skill" ]] && skills_ok=true
     ;;
+  lmstudio)
+    [[ -f "$lmstudio_skill" ]] && skills_ok=true
+    ;;
   both)
-    [[ -f "$cursor_skill" || -f "$claude_skill" ]] && skills_ok=true
+    [[ -f "$cursor_skill" || -f "$claude_skill" || -f "$lmstudio_skill" ]] && skills_ok=true
     ;;
   *)
-    echo "error: invalid platform: $platform (expected cursor, claude, or both)" >&2
+    echo "error: invalid platform: $platform (expected cursor, claude, lmstudio, or both)" >&2
     usage >&2
     exit 1
     ;;
@@ -106,18 +111,19 @@ if [[ "$WORKSPACE_ROOT" == "$REPO_ROOT" ]]; then
   exit 0
 fi
 
-install_hint="bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
-open_hint="Open $REPO_ROOT in Cursor or Claude Code (File → Open Folder)"
+open_hint="Open $REPO_ROOT as the workspace root (Cursor, Claude Code, or LM Studio chat)"
+cursor_claude_hint="Cursor/Claude parent workspace: bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
+lmstudio_hint="LM Studio: open chat with workspace=$REPO_ROOT (install-skills --platform lmstudio only prints the Skills Directory path; it does not fix a wrong workspace)"
 
 # Workspace is a parent or sibling: nested/monorepo layout
 if [[ "$REPO_ROOT" == "$WORKSPACE_ROOT"/* ]]; then
   echo "workspace_matches_repo=no"
   echo "layout=nested"
-  echo "hint=$open_hint, or run: $install_hint"
+  echo "hint=$open_hint. $cursor_claude_hint. $lmstudio_hint"
   exit 2
 fi
 
 echo "workspace_matches_repo=no"
 echo "layout=external"
-echo "hint=$open_hint, or run: $install_hint"
+echo "hint=$open_hint. $cursor_claude_hint. $lmstudio_hint"
 exit 2

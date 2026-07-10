@@ -9,14 +9,15 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--platform cursor|claude|both]
+Usage: $(basename "$0") [--platform cursor|claude|lmstudio|both]
 
-Install Iago skills as symlinks in your home directory.
+Install or verify Iago skills for a platform.
 
 Platforms:
-  cursor  Symlink .cursor/skills/* → ~/.cursor/skills/* (default)
-  claude  Symlink .claude/skills/* → ~/.claude/skills/*
-  both    Install for Cursor and Claude Code
+  cursor    Symlink .cursor/skills/* → ~/.cursor/skills/* (default)
+  claude    Symlink .claude/skills/* → ~/.claude/skills/*
+  lmstudio  Verify .lmstudio/skills/* and print Skills Directory path for khtsly
+  both      Install for Cursor and Claude Code (not LM Studio)
 EOF
 }
 
@@ -46,9 +47,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$platform" in
-  cursor|claude|both) ;;
+  cursor|claude|lmstudio|both) ;;
   *)
-    echo "error: invalid platform: $platform (expected cursor, claude, or both)" >&2
+    echo "error: invalid platform: $platform (expected cursor, claude, lmstudio, or both)" >&2
     usage >&2
     exit 1
     ;;
@@ -113,12 +114,58 @@ install_claude() {
   echo "Restart Claude Code session if skills do not appear"
 }
 
+REQUIRED_LMSTUDIO_SKILLS=(
+  iago-daily
+  iago-setup
+  iago-pipeline-review
+  update-application
+  company-research
+  interview-prep
+  resume-feedback
+)
+
+install_lmstudio() {
+  echo "=== LM Studio ==="
+  local src="$REPO_ROOT/.lmstudio/skills"
+  if [[ ! -d "$src" ]]; then
+    echo "error: skills not found at $src" >&2
+    return 1
+  fi
+
+  local missing=0
+  local name
+  for name in "${REQUIRED_LMSTUDIO_SKILLS[@]}"; do
+    if [[ ! -f "$src/$name/SKILL.md" ]]; then
+      echo "missing: $src/$name/SKILL.md" >&2
+      missing=1
+    fi
+  done
+  if [[ "$missing" -ne 0 ]]; then
+    echo "error: incomplete .lmstudio/skills tree" >&2
+    return 1
+  fi
+
+  echo "Skills Directory Path (paste into khtsly/skills plugin):"
+  echo "  $src"
+  echo
+  echo "Next steps:"
+  echo "  1. Install khtsly/skills from the LM Studio Hub"
+  echo "  2. Set the plugin Skills Directory to the path above"
+  echo "  3. Open LM Studio chat with workspace = $REPO_ROOT"
+  echo "  4. Run: bash \"$REPO_ROOT/scripts/verify-lm-studio.sh\""
+  echo "  5. In chat: /iago-setup"
+  echo "Full guide: $REPO_ROOT/docs/lm-studio-setup.md"
+}
+
 case "$platform" in
   cursor)
     install_cursor
     ;;
   claude)
     install_claude
+    ;;
+  lmstudio)
+    install_lmstudio
     ;;
   both)
     install_cursor

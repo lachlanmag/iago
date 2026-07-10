@@ -35,9 +35,13 @@ fi
 
 echo
 echo "Next steps:"
-echo "  1. In Cursor or Claude Code: Set up job search  (or edit data/config.yaml manually)"
+echo "  1. Pick a platform and run setup in chat: Set up job search  (or edit data/config.yaml manually)"
+echo "     - Cursor: open repo root, then /iago-setup"
+echo "     - Claude Code: open repo root (or install-skills.sh --platform claude), then /iago-setup"
+echo "     - LM Studio: bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform lmstudio"
+echo "       then follow docs/lm-studio-setup.md and run /iago-setup in chat"
 echo "     If skills are missing: bash \"$REPO_ROOT/scripts/verify-workspace.sh\""
-echo "     Monorepo/parent workspace: bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
+echo "     Parent/monorepo (Cursor/Claude): bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
 echo "     (after version upgrades: run iago-upgrade-version in chat or bash \"$REPO_ROOT/scripts/upgrade-iago-version.sh\")"
 echo "     (after config schema upgrades: bash \"$REPO_ROOT/scripts/reconcile-config.sh\" to add new example keys)"
 echo "  2. Run: Run the daily job search"
