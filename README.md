@@ -2,15 +2,18 @@
 
 **Iago is your personal job search henchman.** It's eager to help, full of opinions, and occasionally a little too sure of itself. Use it to surface roles, triage your pipeline, and prep for interviews, but treat its output as a starting point: check listings are still live, read the briefs, and sanity-check anything that sounds too good before you hit apply.
 
-A Cursor-native workflow for sourcing tech roles and tracking applications. Right now it is built around my Product Management search, though the setup skill and config can adapt to other roles. No app to deploy: clone the repo, open it in Cursor, run setup in chat, and kick off a daily agent-driven search that updates YAML trackers and writes a daily report.
+A multi-platform workflow for sourcing tech roles and tracking applications. Use **Cursor**, **Claude Code**, or **LM Studio** (local models). Right now it is built around my Product Management search, though the setup skill and config can adapt to other roles. No app to deploy: clone the repo, pick a platform, run setup in chat, and kick off a daily agent-driven search that updates YAML trackers and writes a daily report.
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Cursor](https://cursor.com) with Agent, or [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as an optional alternative
 - Network access for job board search
-- For headless runs: `cursor agent login` (once)
+- One of:
+  - [Cursor](https://cursor.com) with Agent
+  - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+  - [LM Studio](https://lmstudio.ai/) with the [khtsly/skills](https://lmstudio.ai/khtsly/skills) plugin
+- For Cursor headless runs: `cursor agent login` (once)
 
 ### 1. Clone
 
@@ -21,35 +24,54 @@ git clone git@github.com:lachlanmag/iago.git
 cd iago
 ```
 
-### 2. Run setup in Cursor
+### 2. Choose your platform
 
-Open the repo root in Cursor (the folder that contains `.cursor/skills/`) and start guided setup in chat:
+Canonical workflow content lives in `skills/` at the repo root. Each platform has thin entrypoints only.
 
-> Set up job search
+#### Cursor
 
-Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
+1. Open the **Iago repo root** in Cursor (the folder that contains `.cursor/skills/` and `skills/`).
+2. In chat: `Set up job search` or `/iago-setup`.
+3. Then: `Run the daily job search` or `/iago-daily`.
 
-The setup skill initializes `data/` if needed, then walks you through location, role priorities, resume path, search boards, and watch list, and writes `data/config.yaml`.
+Skills ship in `.cursor/skills/` and are discovered automatically when this repo is the workspace root.
 
-### 3. Run your first search
+**Parent workspace** (Obsidian vault + several repos): prefer opening the Iago folder, or run `bash scripts/install-skills.sh --platform cursor` (or `--platform both`) and reload the window. Check **Cursor Settings → Customize → Skills**. Layout check: `bash scripts/verify-workspace.sh`.
 
-> Run the daily job search
+**Headless daily search** uses the Cursor Agent CLI (`bash scripts/run-daily-search.sh`). See headless notes under How It Works.
 
-**Manual alternative:** run `bash scripts/init-data.sh`, then edit `data/config.yaml` directly (`profile.resume_path`, `profile.location`, role priorities, search sources). Optional: `profile.output_language` for research, prep, and feedback artifacts.
+#### Claude Code
 
+1. Open the Iago repo root as your workspace (folder containing `.claude/skills/` and `skills/`).
+2. Same chat triggers as Cursor (`Set up job search`, `/iago-daily`, …).
 
+For a **parent workspace**:
 
-### Cursor skills
+```bash
+cd /path/to/your/iago-clone
+bash scripts/install-skills.sh --platform claude
+```
 
-Iago skills ship in `.cursor/skills/`; canonical workflow content lives in `skills/` at the repo root (shared with Claude Code). Cursor discovers them automatically when this repo is the workspace root.
+Headless Claude Code daily search is deferred to [#34](https://github.com/lachlanmag/iago/issues/34).
 
-If your workspace is a **parent folder** (e.g. Obsidian vault + several git repos), there is no settings toggle for a custom skills path. Use one of these instead:
+#### LM Studio
 
-1. **Open the Iago repo root** (File → Open Folder). Simplest.
-2. **Add Iago to the workspace** (File → Add Folder to Workspace). Skills in `iago/.cursor/skills/` are discovered when you work with files inside the Iago folder.
-3. **Install skills globally** only if you need them everywhere in a large parent workspace without opening Iago files: `bash scripts/install-skills.sh` from your clone, then reload the window.
+Interactive local models via [khtsly/skills](https://lmstudio.ai/khtsly/skills):
 
-Check discovery in **Cursor Settings → Customize → Skills**. Layout check: `bash scripts/verify-workspace.sh` from your clone. The `iago-setup` skill runs these checks during onboarding and uses `$REPO_ROOT` for all paths when the workspace root is a parent folder.
+```bash
+cd /path/to/your/iago-clone
+bash scripts/install-skills.sh --platform lmstudio
+```
+
+Paste the printed path into the plugin **Skills Directory**, open LM Studio chat with **workspace = Iago repo root**, then `/iago-setup` and `/iago-daily`.
+
+Full steps, model tips, and troubleshooting: **[docs/lm-studio-setup.md](docs/lm-studio-setup.md)**.
+
+Automation / headless with Pi is tracked in [#40](https://github.com/lachlanmag/iago/issues/40).
+
+### 3. Manual config alternative
+
+Run `bash scripts/init-data.sh`, then edit `data/config.yaml` directly (`profile.resume_path`, `profile.location`, role priorities, search sources). Optional: `profile.output_language` for research, prep, and feedback artifacts.
 
 ## Upgrading Iago
 
@@ -69,7 +91,7 @@ Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, check f
 
 The `iago-upgrade-version` skill pulls from GitHub, merges any new config template keys into your `data/config.yaml`, refreshes global skill symlinks when your workspace is a parent folder, and reminds you to reload Cursor.
 
-After a successful upgrade: **Developer: Reload Window** (Cmd+Shift+P on Mac, Ctrl+Shift+P on Windows/Linux).
+After a successful upgrade: **Developer: Reload Window** (Cmd+Shift+P on Mac, Ctrl+Shift+P on Windows/Linux). Claude Code and LM Studio users should re-run `bash scripts/install-skills.sh --platform claude` or `--platform lmstudio` (or `bash scripts/verify-lm-studio.sh` for LM Studio) if skills did not refresh.
 
 ### Manual alternative
 
@@ -102,20 +124,6 @@ IAGO_DAILY_DRIVER_ROOT=/path/to/daily-driver bash scripts/sync-daily-driver.sh  
 ```
 
 One-time daily-driver checkout: `git worktree add /path/to/iago-daily main` from the dev clone (a second full clone works too). Future contributors only need fork + PR on one clone.
-
-### Claude Code skills
-
-Skills install to `.claude/skills/`; canonical workflow content lives in `skills/` at the repo root. Open the repo root as your workspace.
-
-For a **parent workspace** (e.g. Obsidian vault + several git repos), install from the Iago clone:
-
-```bash
-cd /path/to/your/iago-clone
-bash scripts/install-skills.sh --platform claude
-# or: bash scripts/install-skills.sh --platform both
-```
-
-Same chat triggers as Cursor (e.g. "Run the daily job search", "Set up job search", `/iago-daily`).
 
 ## How It Works
 
@@ -261,7 +269,7 @@ Trigger phrases: talking points, `/iago-interview`, `/interview-prep`. Runs auto
 
 ```
 iago/
-  skills/                            # Canonical workflow content (shared by both platforms)
+  skills/                            # Canonical workflow content (shared by all platforms)
     iago-daily/
     iago-setup/
     iago-pipeline-review/
@@ -286,10 +294,18 @@ iago/
     company-research/
     interview-prep/
     resume-feedback/
+  .lmstudio/skills/                  # LM Studio skill entrypoints (symlinked or copied from skills/)
+    iago-daily/
+    iago-setup/
+    iago-pipeline-review/
+    update-application/
+    company-research/
+    interview-prep/
+    resume-feedback/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
   data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, upgrade-iago-version.sh, run-daily-search.sh, sync-daily-driver.sh (maintainer)
+  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, verify-lm-studio.sh, reconcile-config.sh, upgrade-iago-version.sh, run-daily-search.sh, sync-daily-driver.sh (maintainer)
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
