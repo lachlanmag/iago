@@ -9,14 +9,15 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--platform cursor|claude|both]
+Usage: $(basename "$0") [--platform cursor|claude|hermes|both]
 
 Install Iago skills as symlinks in your home directory.
 
 Platforms:
   cursor  Symlink .cursor/skills/* → ~/.cursor/skills/* (default)
   claude  Symlink .claude/skills/* → ~/.claude/skills/*
-  both    Install for Cursor and Claude Code
+  hermes  Symlink .hermes/skills/* → \${HERMES_HOME:-~/.hermes}/skills/*
+  both    Install for Cursor, Claude Code, and Hermes Agent (all platforms)
 EOF
 }
 
@@ -46,9 +47,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$platform" in
-  cursor|claude|both) ;;
+  cursor|claude|hermes|both) ;;
   *)
-    echo "error: invalid platform: $platform (expected cursor, claude, or both)" >&2
+    echo "error: invalid platform: $platform (expected cursor, claude, hermes, or both)" >&2
     usage >&2
     exit 1
     ;;
@@ -113,6 +114,21 @@ install_claude() {
   echo "Restart Claude Code session if skills do not appear"
 }
 
+install_hermes() {
+  echo "=== Hermes Agent ==="
+  local hermes_dest="${HERMES_HOME:-$HOME/.hermes}/skills"
+  install_platform "$REPO_ROOT/.hermes/skills" "$hermes_dest"
+  echo "New Hermes sessions will discover skills automatically; reload running redbinding by restarting hermes as needed."
+}
+
+install_all() {
+  install_cursor
+  echo
+  install_claude
+  echo
+  install_hermes
+}
+
 case "$platform" in
   cursor)
     install_cursor
@@ -120,9 +136,10 @@ case "$platform" in
   claude)
     install_claude
     ;;
+  hermes)
+    install_hermes
+    ;;
   both)
-    install_cursor
-    echo
-    install_claude
+    install_all
     ;;
 esac
