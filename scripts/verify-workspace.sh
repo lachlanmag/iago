@@ -111,7 +111,7 @@ if [[ "$WORKSPACE_ROOT" == "$REPO_ROOT" ]]; then
   exit 0
 fi
 
-install_hint="bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both # platform selection"
+install_hint="bash \"$REPO_ROOT/scripts/install-skills.sh\" --platform both"
 open_hint="Open $REPO_ROOT in Cursor or Claude Code (File → Open Folder)"
 
 # Workspace is a parent or sibling: nested/monorepo layout

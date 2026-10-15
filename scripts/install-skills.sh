@@ -118,7 +118,7 @@ install_hermes() {
   echo "=== Hermes Agent ==="
   local hermes_dest="${HERMES_HOME:-$HOME/.hermes}/skills"
   install_platform "$REPO_ROOT/.hermes/skills" "$hermes_dest"
-  echo "New Hermes sessions will discover skills automatically; reload running redbinding by restarting hermes as needed."
+  echo "New Hermes sessions will discover skills automatically; restart Hermes to pick up updates in an already-running session."
 }
 
 install_all() {

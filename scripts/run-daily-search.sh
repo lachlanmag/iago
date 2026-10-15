@@ -138,6 +138,9 @@ EOF
   else
     CMD=(
       "$AGENT_BIN" chat --in "$REPO_ROOT"
+      --oneshot
+      --accept-hooks
+      -Q
     )
     if [[ -n "${HERMES_MODEL:-}" ]]; then
       CMD+=(--model "$HERMES_MODEL")
