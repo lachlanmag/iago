@@ -8,7 +8,7 @@ A Cursor-native workflow for sourcing tech roles and tracking applications. Righ
 
 ### Prerequisites
 
-- [Cursor](https://cursor.com) with Agent, or [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as an optional alternative
+- [Cursor](https://cursor.com) with Agent, or [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Hermes Agent](https://hermes-agent.nousresearch.com/docs) as an optional alternative
 - Network access for job board search
 - For headless runs: `cursor agent login` (once)
 
@@ -89,6 +89,18 @@ Requires `pip3 install ruamel.yaml` once if config merge fails (preserves YAML c
 - Copy files manually from GitHub
 - Worry about `data/` being committed or deleted by `git pull`
 
+### Schedule with Hermes cron
+
+Running `/iago-upgrade-version` (in a Hermes session) refreshes global skill symlinks the same way it does for Cursor, so Hermes picks up upgraded skills without a manual reinstall.
+
+Schedule the daily search as a Hermes cron job instead of a system crontab entry:
+
+```bash
+hermes cron create "0 9 * * *" 'bash "$REPO_ROOT/scripts/run-daily-search.sh" --agent hermes'
+```
+
+Manage the schedule with `hermes cron pause`, `hermes cron resume`, and `hermes cron edit`, or from the Hermes desktop app's **Scheduled jobs** view.
+
 ### Maintainer note
 
 Optional solo-maintainer layout: **dev clone** (feature branches) + **daily-driver checkout** on `main` (real `data/`). Iago has no deploy target; version upgrade on the daily driver is `git pull` plus Iago-specific steps bundled in `sync-daily-driver.sh`.
@@ -116,6 +128,20 @@ bash scripts/install-skills.sh --platform claude
 ```
 
 Same chat triggers as Cursor (e.g. "Run the daily job search", "Set up job search", `/iago-daily`).
+
+### Hermes Agent setup
+
+Prerequisite: [Hermes Agent](https://hermes-agent.nousresearch.com/docs) installed and `hermes setup` completed.
+
+```bash
+cd /path/to/your/iago-clone
+bash scripts/install-skills.sh --platform hermes
+# or: bash scripts/install-skills.sh --platform both
+```
+
+Start a new `hermes` session and run `/iago` (or say "Run the daily job search", "Set up job search"). Unlike Cursor, Hermes needs no reload window: new sessions discover installed skills automatically.
+
+In Hermes desktop, open or switch to a Project for the Iago clone so skills and chat history group under it in the sidebar.
 
 ## How It Works
 
@@ -167,12 +193,13 @@ Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, `/iago-
 
 Trigger phrases: daily job search, job hunt, find new jobs, `/iago`, `/iago-daily`.
 
-**Headless (Cursor Agent CLI):**
+**Headless (Cursor Agent CLI or Hermes):**
 
-Headless daily search requires the [Cursor Agent CLI](https://cursor.com/docs/agent/cli). Claude Code headless support is tracked in [#34](https://github.com/lachlanmag/iago/issues/34).
+Headless daily search requires the [Cursor Agent CLI](https://cursor.com/docs/agent/cli) or [Hermes Agent](https://hermes-agent.nousresearch.com/docs). Claude Code headless support is tracked in [#34](https://github.com/lachlanmag/iago/issues/34).
 
 ```bash
-bash scripts/run-daily-search.sh
+bash scripts/run-daily-search.sh                  # Cursor (default)
+bash scripts/run-daily-search.sh --agent hermes    # Hermes
 ```
 
 Logs: `data/logs/latest.log`
@@ -281,6 +308,15 @@ iago/
   .claude/skills/                    # Claude Code skill entrypoints (symlinked or copied from skills/)
     iago-daily/
     iago-setup/
+    iago-pipeline-review/
+    update-application/
+    company-research/
+    interview-prep/
+    resume-feedback/
+  .hermes/skills/                    # Hermes Agent skill entrypoints (symlinked or copied from skills/)
+    iago-daily/
+    iago-setup/
+    iago-upgrade-version/
     iago-pipeline-review/
     update-application/
     company-research/
