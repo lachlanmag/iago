@@ -1,8 +1,37 @@
 #!/usr/bin/env bash
-# Local daily job search: runs Cursor Agent CLI against this repo (no cloud).
-# Prerequisites: cursor agent login (once), Cursor installed, network for job search.
+# Local daily job search: runs an agent CLI (Cursor or Hermes) against this repo (no cloud).
+# Prerequisites: agent login/setup (once), agent CLI installed, network for job search.
 
 set -euo pipefail
+
+usage() {
+  cat <<USAGE
+Usage: $(basename "$0") [--agent cursor|hermes]
+
+Options:
+  --agent cursor|hermes   Select the agent CLI to run the daily search (default: cursor)
+USAGE
+}
+
+AGENT="cursor"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent)
+      AGENT="${2:-}"
+      shift 2
+      ;;
+    --agent=*)
+      AGENT="${1#*=}"
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="$REPO_ROOT/data"
@@ -43,7 +72,30 @@ resolve_cursor() {
   exit 1
 }
 
-CURSOR="$(resolve_cursor)"
+resolve_hermes() {
+  if [[ -n "${HERMES_CLI_PATH:-}" && -x "${HERMES_CLI_PATH}" ]]; then
+    echo "${HERMES_CLI_PATH}"
+    return
+  fi
+  if command -v hermes >/dev/null 2>&1; then
+    command -v hermes
+    return
+  fi
+  for candidate in "/Users/$USER/.hermes/hermes-agent" "/opt/homebrew/bin/hermes"; do
+    if [[ -f "$candidate" && -x "$candidate" ]]; then
+      echo "$candidate"
+      return
+    fi
+  done
+  echo "Hermes CLI not found. Install Hermes or set HERMES_CLI_PATH." >&2
+  exit 1
+}
+
+case "$AGENT" in
+  cursor) AGENT_BIN="$(resolve_cursor)" ;;
+  hermes) AGENT_BIN="$(resolve_hermes)" ;;
+  *) echo "invalid --agent: $AGENT (cursor or hermes)" >&2; usage >&2; exit 2 ;;
+esac
 
 PROMPT="$(cat <<EOF
 Read and follow skills/iago-daily/WORKFLOW.md in this workspace.
@@ -68,30 +120,47 @@ EOF
 {
   echo "=== Daily job search started: $(local_date -Iseconds) (${IAGO_TZ}, run date ${RUN_DATE}) ==="
   echo "Repo: $REPO_ROOT"
-  echo "Cursor: $CURSOR"
+  echo "Agent: $AGENT ($AGENT_BIN)"
   echo
 
   cd "$REPO_ROOT"
 
-  CMD=(
-    "$CURSOR" agent -p
-    --trust
-    --force
-    --workspace "$REPO_ROOT"
-  )
-
-  if [[ -n "${CURSOR_AGENT_MODEL:-}" ]]; then
-    CMD+=(--model "$CURSOR_AGENT_MODEL")
+  if [[ "$AGENT" == "cursor" ]]; then
+    CMD=(
+      "$AGENT_BIN" agent -p
+      --trust
+      --force
+      --workspace "$REPO_ROOT"
+    )
+    if [[ -n "${CURSOR_AGENT_MODEL:-}" ]]; then
+      CMD+=(--model "$CURSOR_AGENT_MODEL")
+    fi
+  else
+    CMD=(
+      "$AGENT_BIN" chat --in "$REPO_ROOT"
+      --oneshot
+      --accept-hooks
+      -Q
+    )
+    if [[ -n "${HERMES_MODEL:-}" ]]; then
+      CMD+=(--model "$HERMES_MODEL")
+    fi
   fi
 
-  CMD+=("$PROMPT")
+  if [[ "$AGENT" == "hermes" ]]; then
+    CMD+=(-q "$PROMPT")
+  else
+    CMD+=("$PROMPT")
+  fi
 
+  set +e
   "${CMD[@]}"
   EXIT=$?
+  set -e
 
   echo
   echo "=== Finished: $(local_date -Iseconds) (${IAGO_TZ}, run date ${RUN_DATE}) (exit $EXIT) ==="
-  exit "$EXIT"
 } >>"$LOG_FILE" 2>&1
 
 ln -sf "$LOG_FILE" "$LOG_DIR/latest.log"
+exit "$EXIT"

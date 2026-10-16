@@ -12,7 +12,7 @@ WORKSPACE_ROOT=""
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--platform cursor|claude] [workspace-root]
+Usage: $(basename "$0") [--platform cursor|claude|hermes|both] [workspace-root]
 
 Verify Iago skill layout at repo root and workspace layout.
 
@@ -20,6 +20,7 @@ Platforms:
   both    Check .cursor/ and .claude/ skill trees (default)
   cursor  Check .cursor/skills/iago-setup/SKILL.md only
   claude  Check .claude/skills/iago-setup/SKILL.md only
+  hermes  Check .hermes/skills/iago-setup/SKILL.md only
 EOF
 }
 
@@ -74,6 +75,7 @@ echo "workspace_root=$WORKSPACE_ROOT"
 
 cursor_skill="$REPO_ROOT/.cursor/skills/iago-setup/SKILL.md"
 claude_skill="$REPO_ROOT/.claude/skills/iago-setup/SKILL.md"
+hermes_skill="$REPO_ROOT/.hermes/skills/iago-setup/SKILL.md"
 
 skills_ok=false
 case "$platform" in
@@ -83,11 +85,14 @@ case "$platform" in
   claude)
     [[ -f "$claude_skill" ]] && skills_ok=true
     ;;
+  hermes)
+    [[ -f "$hermes_skill" ]] && skills_ok=true
+    ;;
   both)
-    [[ -f "$cursor_skill" || -f "$claude_skill" ]] && skills_ok=true
+    [[ -f "$cursor_skill" || -f "$claude_skill" || -f "$hermes_skill" ]] && skills_ok=true
     ;;
   *)
-    echo "error: invalid platform: $platform (expected cursor, claude, or both)" >&2
+    echo "error: invalid platform: $platform (expected cursor, claude, hermes, or both)" >&2
     usage >&2
     exit 1
     ;;
