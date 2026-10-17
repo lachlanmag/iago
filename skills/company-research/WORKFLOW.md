@@ -13,8 +13,8 @@
 | File | Purpose |
 |------|---------|
 | `$REPO_ROOT/data/applications.yaml` | Shortlisted role row (company, title, url, industry, resume_fit, notes) |
-| `$REPO_ROOT/data/config.yaml` | `profile.resume_path`, industry awareness, resume fit themes |
-| `profile.resume_path` in config | Master resume for fit angle (read only; do not commit) |
+| `$REPO_ROOT/data/config.yaml` | `profile.resume_path`, `integrations.resume_matcher.master_resume_source`/`api_base_url`, industry awareness, resume fit themes |
+| Master resume (`profile.resume_path`, or Resume Matcher API when `master_resume_source: api`) | For fit angle (read only; do not commit) |
 | User `jd_path` on tracker row | Saved JD markdown if already set (external or `$REPO_ROOT/data/jds/`) |
 | `$REPO_ROOT/data/jds/` | Full job descriptions cached on shortlist (gitignored) |
 | `$REPO_ROOT/skills/company-research/prompt.md` | **Mandatory brief prompt** (apply verbatim after research) |
@@ -35,7 +35,7 @@ If the role is not `shortlisted` (or being promoted in the same turn), still run
 ### 1. Load role context
 
 - Read the tracker row and `$REPO_ROOT/data/config.yaml`.
-- Read master resume at `profile.resume_path` (themes only; do not quote long passages).
+- Read master resume at `profile.resume_path` (or live from the Resume Matcher API when `integrations.resume_matcher.master_resume_source: api` — see `resume-feedback/WORKFLOW.md` → Master resume resolution for the exact calls) (themes only; do not quote long passages).
 - Load JD from `jd_path` if set; otherwise open canonical `url` and extract the full job description. Use browser for SPAs that block fetch.
 - Skip if `company_research` on the row points to an artifact dated today for this tracker row (idempotent re-run). Otherwise proceed.
 

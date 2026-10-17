@@ -226,7 +226,7 @@ shortlist → company-research → resume-feedback → apply → interview-prep
 shortlist → company-research → tailor via Resume-Matcher → resume-feedback → apply → interview-prep
 ```
 
-Point `profile.resume_path` at your master resume for fit scoring during search and for standalone resume feedback. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
+Point `profile.resume_path` at your master resume for fit scoring during search and for standalone resume feedback. To read the master resume live from Resume Matcher's database instead of a static file, set `integrations.resume_matcher.master_resume_source: api` and `api_base_url` (e.g. `http://localhost:3001`) — every skill that reads the master resume falls back to `profile.resume_path` if the API call fails. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
 

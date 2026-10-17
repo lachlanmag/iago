@@ -13,6 +13,8 @@ profile:
 integrations:
   resume_matcher:
     enabled: false  # true when using Resume-Matcher for tailoring handoff
+    api_base_url: http://localhost:3001  # Resume Matcher host:port (same on every machine)
+    master_resume_source: file  # api: live from Resume Matcher's DB; file: profile.resume_path (default)
 
 role_priority:
   - Product Manager

@@ -273,4 +273,4 @@ Requires `cursor agent login` once. Logs: `$REPO_ROOT/data/logs/latest.log`
 
 ## Out of scope
 
-This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export stay external when you use them. Run `resume-feedback` to review your resume against the JD before apply (markdown from `profile.resume_path` by default), then apply via `update-application`.
+This skill covers job sourcing and application tracking only. Resume tailoring, cover letters, and PDF export stay external when you use them. Run `resume-feedback` to review your resume against the JD before apply (master resume from `profile.resume_path`, or live from Resume Matcher's API when `integrations.resume_matcher.master_resume_source: api`), then apply via `update-application`.

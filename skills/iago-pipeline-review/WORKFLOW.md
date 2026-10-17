@@ -18,7 +18,7 @@
 | `$REPO_ROOT/data/config.yaml` | Role priority, location rules, industry/resume fit rubric, listing freshness |
 | `$REPO_ROOT/data/applications.yaml` | Pipeline tracker |
 | `$REPO_ROOT/data/seen-jobs.yaml` | Canonical URLs, `listing_verified`, closing hints |
-| `profile.resume_path` in config | Resume for fit re-scoring |
+| `profile.resume_path` in config | Resume for fit re-scoring (or live from Resume Matcher API when `integrations.resume_matcher.master_resume_source: api` — see `resume-feedback/WORKFLOW.md` → Master resume resolution) |
 | Latest `$REPO_ROOT/data/daily-runs/*.md` | Optional context from most recent daily run |
 
 Repo root is `$REPO_ROOT`. Prefix paths when workspace root ≠ `REPO_ROOT`.
