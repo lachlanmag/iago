@@ -14,9 +14,10 @@
 
 | File | Purpose |
 |------|---------|
-| `$REPO_ROOT/data/config.yaml` | `profile.output_language`, `profile.resume_path`, `integrations.resume_matcher.enabled` (default `false`) |
+| `$REPO_ROOT/data/config.yaml` | `profile.output_language`, `profile.resume_path`, `integrations.resume_matcher.enabled` (default `false`), `master_resume_source`, `api_base_url` |
 | `$REPO_ROOT/data/applications.yaml` | Optional: resolve company/title and JD path from a shortlisted role |
-| `profile.resume_path` in config | Default resume source in standalone mode (read only; do not commit) |
+| `profile.resume_path` in config | Resume source when `master_resume_source: file` (read only; do not commit) |
+| Resume Matcher API (`api_base_url`) | Resume source when `master_resume_source: api` — see Master resume resolution below |
 | `$REPO_ROOT/skills/resume-feedback/prompt.md` | **Mandatory review prompt** (apply verbatim) |
 | User-provided paths | Job description text/markdown; resume markdown or tailored JSON depending on mode (local; not in repo) |
 
@@ -51,6 +52,11 @@ If any input is missing, ask once with concrete options (e.g. company from track
 
 **Resume markdown (matcher off):** Load from `profile.resume_path` unless the user supplies a path or inline paste. Do not convert to JSON.
 
+**Master resume resolution** (`integrations.resume_matcher.master_resume_source`, default `file`):
+
+- `api`: `GET {api_base_url}/api/v1/resumes/list?include_master=true`, pick the row with `is_master: true` (prefer `is_default_master: true` when more than one), then `GET {api_base_url}/api/v1/resumes?resume_id={id}` and use `data.raw_resume.content` as the master resume (format follows `data.raw_resume.content_type`: `json` or `md`). On connection failure or empty result, fall back to `profile.resume_path` and note the fallback to the user.
+- `file`: read `profile.resume_path` directly.
+
 **Tracker shortcut:** If the user names a shortlisted role, read `$REPO_ROOT/data/applications.yaml` for company/title and use `jd_path` when set (from `company-research`). Resolve resume per mode table above.
 
 ## Workflow
@@ -60,7 +66,7 @@ If any input is missing, ask once with concrete options (e.g. company from track
 - Read `$REPO_ROOT/data/config.yaml` when present for `output_language` and `integrations.resume_matcher.enabled` (default `false`).
 - Load `{job_description}` from `jd_path` on the tracker row when the user names a role; otherwise from user-supplied path or message.
 - **Matcher on:** load `{resume_data}` from user-supplied path or inline JSON; pretty-print if minified. Ask once if missing.
-- **Matcher off:** load `{resume_data}` from `profile.resume_path` unless the user overrides with path or inline markdown. Ask once if missing or unreadable.
+- **Matcher off:** load `{resume_data}` per Master resume resolution above (`api` or `file`) unless the user overrides with path or inline markdown. Ask once if missing or unreadable.
 - Record metadata for the report filename and artifact: `company`, `title`, `date` (today, `YYYY-MM-DD`), `resume_source` (resolved file path or `inline`), `resume_format` (`markdown` or `json`), `resume_matcher_enabled` (boolean).
 
 ### 2. Run the review
