@@ -20,6 +20,7 @@
 | `$REPO_ROOT/data/seen-jobs.yaml` | Dedup index (init only) |
 | `$REPO_ROOT/data/recruiters.yaml` | Recruiter tracker (init only) |
 | `profile.resume_path` in config | Local resume for fit theme extraction |
+| `$REPO_ROOT/scripts/link-data.sh` | Data folder status / link (step 0b; shared with `iago-data-location`) |
 
 When Iago lives inside a larger workspace (notes, tasks, other rule sets), project skills may not auto-discover; use `install-skills.sh` as fallback.
 
@@ -48,15 +49,34 @@ When Iago lives inside a larger workspace (notes, tasks, other rule sets), proje
 
 **Combined workspace note:** Parent folders (Obsidian vault + git repos) are fine for daily use once skills are symlinked to `~/.cursor/skills/`. Always prefix Iago file paths and scripts with `$REPO_ROOT` when workspace root ≠ `REPO_ROOT`.
 
+### 0b. Choose data folder
+
+Decide where this computer keeps Iago data **before** any data file is created. Follow `$REPO_ROOT/skills/iago-data-location/WORKFLOW.md` (steps 2–6) for the status → pick → preview → confirm → link flow; do not duplicate its logic here.
+
+1. Run `bash "$REPO_ROOT/scripts/link-data.sh" --status`.
+2. Branch on `mode`:
+
+   | `mode` | Action |
+   |--------|--------|
+   | `missing` (fresh clone) | **Always ask:** "Where should Iago keep your job search data? To use Iago on more than one computer, pick a folder your sync tool (Nextcloud, Google Drive, Syncthing, …) already syncs. Or keep it inside the Iago repo." Choices: **Pick a folder** (recommended) / **Type a path** / **Keep in repo**. Remember the choice for step 1 (`--data-dir "<folder>"` or `--keep-in-repo`). For a folder, preview with `--dry-run` and confirm, but let step 1's `init-data.sh --data-dir` do the linking. |
+   | `in-repo` with files | Say where the data is and offer **Move to a folder outside the repo** (run the iago-data-location flow now) or **Keep as is**. Never force a move. |
+   | `linked` | Say "Using `<target>`." and continue without asking. |
+   | `broken` | Stop setup. Offer **Pick a different folder** or **I'll reconnect the sync folder**. Never initialize an empty folder at the missing path. |
+
+3. **Second computer:** if the chosen folder already contains `config.yaml`, say "Found existing Iago data (last updated <mtime of applications.yaml>). Linking to it; nothing will be overwritten." In step 1, default to **Update config**.
+4. Typed paths may use `~` or be relative; show the resolved path from the dry-run `target=` line back to the user before confirming.
+
 ### 1. Detect state
 
 Check whether core files exist: `$REPO_ROOT/data/config.yaml`, `$REPO_ROOT/data/applications.yaml`, `$REPO_ROOT/data/seen-jobs.yaml`.
 
-If any are missing, run:
+If any are missing, run `init-data.sh` with the choice from step 0b (never bare, so it does not prompt a second time):
 
 ```bash
-bash "$REPO_ROOT/scripts/init-data.sh"
+bash "$REPO_ROOT/scripts/init-data.sh" --data-dir "<chosen folder>"   # or: --keep-in-repo
 ```
+
+If 0b linked to a folder that already has a filled-in `config.yaml` (another machine), default to **Update config**, not **Fresh setup**.
 
 If `data/config.yaml` exists with non-placeholder values, present choices and ask the user:
 
@@ -159,7 +179,7 @@ Collect `watch_companies`: company names to monitor on ATS boards (Lever, Workab
 | At least one search source enabled | Block save |
 | URLs resolve (fetch or browser) | Warn; allow save if user confirms |
 
-Remind user: all output stays in gitignored `data/`. After setup, run `git status` to confirm nothing under `data/` is staged.
+Remind user where their data lives, using `link-data.sh --status`: e.g. "Your data is stored in `~/Nextcloud/iago-data`, outside the git repo" (or "in the repo's gitignored `data/` folder"). After setup, run `git status` to confirm nothing under `data/` is staged.
 
 ### 11. Write YAML
 
@@ -173,6 +193,7 @@ Summarize:
 
 - Sections written
 - Path to `$REPO_ROOT/data/config.yaml`
+- Data folder location (from `link-data.sh --status`). If external: "On another computer, clone Iago and run setup (or ask *change my Iago data folder*) and pick the same synced folder."
 - Enabled search boards (names)
 - Skills status (auto-discovered at repo root, or installed to `~/.cursor/skills/`)
 - **Next step:** Run the daily job search (`iago-daily` or "Run the daily job search")
