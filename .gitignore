@@ -1,6 +1,7 @@
 # Local job search data (Resume-Matcher pattern)
 /data
 /data.local-backup-*/
+/data.iago-moved.*/
 
 # OS
 .DS_Store

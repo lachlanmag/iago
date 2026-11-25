@@ -5,13 +5,28 @@
 # config (iago.dataDir), so a git checkout that replaces or removes the
 # symlink is detected instead of silently starting a fresh, empty data/.
 
+# True when git is available and $1 is the top level of its own git checkout
+# (not a copy without .git sitting inside some other repository).
+iago_own_git_repo() {
+  local repo="$1" top
+  command -v git >/dev/null 2>&1 || return 1
+  top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  [[ -n "$top" && "$top" -ef "$repo" ]]
+}
+
 # Print this clone's configured data folder (absolute path), or nothing.
-# Silent no-op when git is unavailable or the repo is not a git checkout.
+# Silent no-op when git is unavailable or the repo is not its own checkout.
 iago_configured_dir() {
   local repo="$1"
-  command -v git >/dev/null 2>&1 || return 0
-  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || return 0
+  iago_own_git_repo "$repo" || return 0
   git -C "$repo" config --local --get iago.dataDir 2>/dev/null || true
+}
+
+# Record this clone's data folder (same conditions as iago_configured_dir).
+iago_record_configured() {
+  local repo="$1" dir="$2"
+  iago_own_git_repo "$repo" || return 0
+  git -C "$repo" config --local iago.dataDir "$dir" 2>/dev/null || true
 }
 
 # Print the data/ mode: missing, in-repo, linked, broken, other (a non-folder

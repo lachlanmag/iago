@@ -120,11 +120,9 @@ data_mode() {
 }
 
 # Remember this machine's folder so a git checkout that drops the symlink is
-# detected later. Skipped silently when git or the repo is unavailable.
+# detected later. Skipped silently when git or the repo's own .git is missing.
 record_configured() {
-  command -v git >/dev/null 2>&1 || return 0
-  git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 || return 0
-  git -C "$REPO_ROOT" config --local iago.dataDir "$1" 2>/dev/null || true
+  iago_record_configured "$REPO_ROOT" "$1"
 }
 
 cmd_status() {
@@ -202,10 +200,33 @@ move_fail() {
   return 1
 }
 
+# The copy is already in the target folder but data/ was not removed.
+copy_kept_fail() {
+  echo "error: $1; data/ left in place, nothing removed." >&2
+  echo "  A copy of your data is in $(tilde "$2"); check it before deleting anything there." >&2
+  return 1
+}
+
+# Relative paths of symlinks under $1 that do not resolve.
+dangling_links() {
+  (cd "$1" && find -L . -type l 2>/dev/null | sort) || true
+}
+
+# Remove only placeholder files and empty folders from a target that holds
+# no real files, so it can be replaced. Never runs when real files exist.
+clear_placeholders() {
+  local t="$1"
+  [[ "$(count_files "$t")" == 0 ]] || return 1
+  find "$t" -depth \( -name .DS_Store -o -name .gitkeep \) -type f -delete
+  find "$t" -mindepth 1 -depth -type d -empty -delete
+}
+
 # Copy data/ into a staging folder next to the target, verify it, move the
-# staging folder into place, and only then remove the in-repo data/.
+# staging folder into place and verify again, then rename data/ aside
+# (MOVED_ASIDE) for cmd_apply to delete once the link is in place.
+MOVED_ASIDE=""
 move_data() {
-  local target="$1" parent staging before after
+  local target="$1" parent staging before after new_dangling
   parent="$(dirname "$target")"
   staging="$parent/$(basename "$target").iago-partial.$$"
   mkdir -p "$parent" || { move_fail "could not create $(tilde "$parent")"; return 1; }
@@ -223,14 +244,44 @@ move_data() {
   if [[ "$after" != "$before" ]]; then
     move_fail "copy verification failed ($before files in data/, $after copied)" "$staging"; return 1
   fi
+  # The staging folder sits next to the target, so relative symlinks resolve
+  # there exactly as they will in the target.
+  new_dangling="$(comm -13 <(dangling_links "$DATA") <(dangling_links "$staging"))"
+  if [[ -n "$new_dangling" ]]; then
+    echo "  Relative links that would break: $(echo "$new_dangling" | sed 's#^\./##' | tr '\n' ' ')" >&2
+    echo "  Replace them with absolute links (or the real files), then re-run." >&2
+    move_fail "symlinks in data/ would break after the move" "$staging"; return 1
+  fi
   if [[ -d "$target" && ! -L "$target" ]]; then
-    rm -f "$target/.DS_Store"
-    rmdir "$target" 2>/dev/null || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+    clear_placeholders "$target" || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+    if [[ -d "$target" ]]; then
+      rmdir "$target" 2>/dev/null || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+    fi
   elif [[ -e "$target" || -L "$target" ]]; then
     move_fail "$(tilde "$target") exists and is not a folder" "$staging"; return 1
   fi
   mv "$staging" "$target" || { move_fail "could not move $(tilde "$staging") to $(tilde "$target")" "$staging"; return 1; }
-  rm -rf "$DATA"
+  # Something (e.g. a sync client) may have re-created the target in between,
+  # in which case mv nested the staging folder inside it.
+  if [[ -e "$staging" ]] || ! diff -rq "$DATA" "$target" >/dev/null 2>&1 \
+     || [[ "$(count_files "$target")" != "$before" ]]; then
+    copy_kept_fail "could not verify the moved copy in $(tilde "$target")" "$target"; return 1
+  fi
+  MOVED_ASIDE="$DATA.iago-moved.$$"
+  if ! mv "$DATA" "$MOVED_ASIDE"; then
+    MOVED_ASIDE=""
+    copy_kept_fail "could not rename data/ aside" "$target"; return 1
+  fi
+}
+
+# Delete the renamed-aside data/ after the link is in place. Failure is only
+# a warning: the data is safe in the linked folder.
+remove_moved_aside() {
+  [[ -n "$MOVED_ASIDE" ]] || return 0
+  if ! rm -rf "$MOVED_ASIDE" 2>/dev/null; then
+    echo "leftover=$(tilde "$MOVED_ASIDE")"
+    echo "warning: could not fully delete the old copy at $(tilde "$MOVED_ASIDE"). Your data is safe in the linked folder; delete the old copy by hand." >&2
+  fi
 }
 
 cmd_apply() {
@@ -259,7 +310,11 @@ cmd_apply() {
 
   case "$action" in
     noop)
-      [[ -n "$(iago_configured_dir "$REPO_ROOT")" ]] || record_configured "$target" ;;
+      local conf
+      conf="$(iago_configured_dir "$REPO_ROOT")"
+      if [[ -z "$conf" ]] || ! [[ -e "$conf" && "$conf" -ef "$target" ]]; then
+        record_configured "$target"
+      fi ;;
     create|link)
       mkdir -p "$target"
       require_outside_repo "$target"
@@ -268,7 +323,16 @@ cmd_apply() {
       make_link "$target" ;;
     move)
       move_data "$target" || return 1
-      make_link "$target" ;;
+      if ! make_link "$target"; then
+        if mv "$MOVED_ASIDE" "$DATA"; then
+          copy_kept_fail "could not create the data link" "$target"
+        else
+          echo "error: could not create the data link; your data is in $(tilde "$target") and the old copy in $(tilde "$MOVED_ASIDE")." >&2
+        fi
+        return 1
+      fi
+      record_configured "$target"
+      remove_moved_aside ;;
     repoint)
       mkdir -p "$target"
       require_outside_repo "$target"

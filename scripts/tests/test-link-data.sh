@@ -340,6 +340,86 @@ r="$(new_repo move-exact)"; seed "$r/data"; mkdir -p "$r/data/jds/deep"; printf 
 cp -Rp "$r/data" "$SANDBOX/move-exact-copy"; t="$SANDBOX/move-exact-target"
 link "$r" "$t" >/dev/null
 check "move: content identical" diff -r "$SANDBOX/move-exact-copy" "$t"
+# --- section: final-review ---
+# PATH shims live inside the sandbox only.
+shim() { # dir name body (body may use $REAL for the real command)
+  mkdir -p "$1"
+  printf '#!/bin/bash\nREAL=%s\n%s\n' "$(command -v "$2")" "$3" > "$1/$2"
+  chmod +x "$1/$2"
+}
+echo "move: target re-created between rmdir and mv (sync client race)"
+r="$(new_repo race)"; seed "$r/data"; t="$SANDBOX/race-sync/iago"; mkdir -p "$t"
+shim "$SANDBOX/shim-race" rmdir '"$REAL" "$@" && mkdir "$@"'
+err="$(PATH="$SANDBOX/shim-race:$PATH" bash "$r/scripts/link-data.sh" "$t" 2>&1 >"$SANDBOX/race.out")"; rc=$?
+check "race: exit 1" test "$rc" = 1
+check "race: no result=ok" test -z "$(grep '^result=ok' "$SANDBOX/race.out")"
+check "race: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+check "race: all files still in data/" test "$(find "$r/data" -type f | wc -l | tr -d ' ')" = 2
+check "race: error names the target" grep -q "race-sync/iago" <<< "$err"
+check "race: no config recorded" test -z "$(git -C "$r" config --local --get iago.dataDir)"
+if [[ "$(id -u)" == 0 ]]; then
+  echo "  skip undeletable-source test (running as root)"
+else
+  echo "move: deleting data/ fails midway after a verified copy"
+  r="$(new_repo rmfail)"; seed "$r/data"; mkdir -p "$r/data/locked"; echo keep > "$r/data/locked/f.md"; chmod 555 "$r/data/locked"
+  t="$SANDBOX/rmfail-target"
+  out="$(link "$r" "$t" 2>"$SANDBOX/rmfail.err")"; rc=$?
+  check "rm fails: exit 0" test "$rc" = 0
+  check "rm fails: data linked to target" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
+  check "rm fails: all files at target" test "$(find "$t" -type f | wc -l | tr -d ' ')" = 3
+  check "rm fails: config recorded" test "$(git -C "$r" config --local --get iago.dataDir)" = "$t"
+  check "rm fails: warning names leftover" grep -q "data.iago-moved" "$SANDBOX/rmfail.err"
+  check "rm fails: leftover= key" grep -q "^leftover=.*data.iago-moved" <<< "$out"
+  check "rm fails: leftover ignored by git" test -z "$(cd "$r" && git status --porcelain)"
+  chmod -R u+rwX "$r"/data.iago-moved.* 2>/dev/null
+fi
+echo "move: renaming data/ aside fails"
+r="$(new_repo renamefail)"; seed "$r/data"; t="$SANDBOX/renamefail-target"
+shim "$SANDBOX/shim-mv" mv 'case "$1" in */data) exit 1 ;; esac; exec "$REAL" "$@"'
+err="$(PATH="$SANDBOX/shim-mv:$PATH" bash "$r/scripts/link-data.sh" "$t" 2>&1 >/dev/null)"; rc=$?
+check "rename fails: exit 1" test "$rc" = 1
+check "rename fails: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+check "rename fails: all files still in data/" test "$(find "$r/data" -type f | wc -l | tr -d ' ')" = 2
+check "rename fails: no config recorded" test -z "$(git -C "$r" config --local --get iago.dataDir)"
+check "rename fails: error names the copy" grep -q "renamefail-target" <<< "$err"
+echo "move: relative symlink that would dangle after the move"
+r="$(new_repo relink)"; seed "$r/data"; ln -s ../examples/config.example.yaml "$r/data/rel.yaml"; ln -s /nonexistent-iago "$r/data/dead"
+t="$SANDBOX/relink-target"
+err="$(link "$r" "$t" 2>&1 >/dev/null)"; rc=$?
+check "rel link: exit 1" test "$rc" = 1
+check "rel link: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+check "rel link: link intact in data/" test -f "$r/data/rel.yaml"
+check "rel link: error names the link" grep -q "rel.yaml" <<< "$err"
+check "rel link: target not created" test ! -e "$t"
+r="$(new_repo deadlink)"; seed "$r/data"; ln -s /nonexistent-iago "$r/data/dead"
+link "$r" "$SANDBOX/deadlink-target" >/dev/null 2>&1; rc=$?
+check "already-dangling link: move ok" test "$rc" = 0 -a -L "$SANDBOX/deadlink-target/dead"
+echo "move: target with only placeholders and empty subfolders"
+r="$(new_repo phtarget)"; seed "$r/data"; t="$SANDBOX/phtarget-t"
+mkdir -p "$t/a/b" "$t/c"; touch "$t/.gitkeep" "$t/a/.DS_Store" "$t/c/.gitkeep"
+out="$(link "$r" "$t" 2>/dev/null)"; rc=$?
+check "placeholders: action=move" test "$(echo "$out" | field action)" = move
+check "placeholders: exit 0" test "$rc" = 0
+check "placeholders: linked" test -L "$r/data"
+check "placeholders: files present" test -f "$t/daily-runs/2026-01-01.md"
+echo "noop: fixes a mismatched configured folder"
+r="$(new_repo noopcfg)"; a="$SANDBOX/noopcfg-a"; link "$r" "$a" >/dev/null
+git -C "$r" config --local iago.dataDir "$SANDBOX/noopcfg-elsewhere"
+out="$(link "$r" "$a" 2>/dev/null)"
+check "noop mismatch: action=noop" test "$(echo "$out" | field action)" = noop
+check "noop mismatch: config updated" test "$(cfg "$r")" = "$a"
+check "noop mismatch: status linked" test "$(link "$r" --status 2>/dev/null | field mode)" = linked
+echo "Iago copy without its own .git inside another git repo"
+mono="$SANDBOX/mono"; mkdir -p "$mono"; git -C "$mono" init -q
+mkdir "$mono/Iago"; cp -R "$SRC_ROOT/scripts" "$SRC_ROOT/examples" "$SRC_ROOT/.gitignore" "$mono/Iago/"; seed "$mono/Iago/data"
+link "$mono/Iago" "$SANDBOX/mono-target" >/dev/null 2>&1; rc=$?
+check "enclosing repo: link exit 0" test "$rc" = 0
+check "enclosing repo: parent config untouched" test -z "$(git -C "$mono" config --local --get iago.dataDir)"
+git -C "$mono" config --local iago.dataDir "$SANDBOX/mono-other"
+mkdir -p "$mono/Iago2"; cp -R "$SRC_ROOT/scripts" "$SRC_ROOT/examples" "$mono/Iago2/"; mkdir "$mono/Iago2/data"
+check "enclosing repo: status ignores parent config" test "$(link "$mono/Iago2" --status 2>/dev/null | field mode)" = in-repo
+bash "$mono/Iago2/scripts/init-data.sh" </dev/null >/dev/null 2>&1; rc=$?
+check "enclosing repo: guard ignores parent config" test "$rc" = 0
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
