@@ -9,12 +9,14 @@
 #   bash scripts/link-data.sh --force <folder>    # on conflict: back up local data/, then link
 #
 # Output: stable key=value lines (parsed by the iago-data-location skill).
-# Exit codes: 0 ok, 1 usage/error, 2 conflict, 3 refused (target inside or containing the repo), 4 broken link.
+# Exit: 0 ok, 1 error, 2 conflict, 3 refused (inside/contains repo), 4 broken/unlinked.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 DATA="$REPO_ROOT/data"
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
 
 usage() {
   sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
@@ -112,32 +114,39 @@ kb_of() {
   du -sk "$1/" | cut -f1
 }
 
+# Physical state of data/ (ignores the configured folder); used for planning.
 data_mode() {
-  if [[ -L "$DATA" ]]; then
-    [[ -d "$DATA" ]] && echo linked || echo broken
-  elif [[ -d "$DATA" ]]; then
-    echo in-repo
-  else
-    echo missing
-  fi
+  iago_data_mode "$REPO_ROOT" ""
+}
+
+# Remember this machine's folder so a git checkout that drops the symlink is
+# detected later. Skipped silently when git or the repo is unavailable.
+record_configured() {
+  command -v git >/dev/null 2>&1 || return 0
+  git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 || return 0
+  git -C "$REPO_ROOT" config --local iago.dataDir "$1" 2>/dev/null || true
 }
 
 cmd_status() {
-  local mode
-  mode="$(data_mode)"
+  local mode physical conf
+  conf="$(iago_configured_dir "$REPO_ROOT")"
+  mode="$(iago_data_mode "$REPO_ROOT" "$conf")"
+  physical="$(data_mode)"
   echo "mode=$mode"
   echo "repo=$(tilde "$REPO_ROOT")"
-  case "$mode" in
+  echo "configured=${conf:+$(tilde "$conf")}"
+  case "$physical" in
     linked|broken) echo "target=$(tilde "$(readlink "$DATA")")" ;;
-    in-repo) echo "target=$(tilde "$DATA")" ;;
-    missing) echo "target=" ;;
+    in-repo|other) echo "target=$(tilde "$DATA")" ;;
+    *) echo "target=" ;;
   esac
   echo "files=$(count_files "$DATA")"
   echo "kb=$(kb_of "$DATA")"
-  if [[ "$mode" == broken ]]; then
-    echo "hint=Folder not found. Mount/sync it, or run: bash scripts/link-data.sh <folder>" >&2
-    return 4
-  fi
+  case "$mode" in
+    broken|unlinked)
+      echo "hint=$(iago_data_hint "$mode" "$REPO_ROOT" "$conf")" >&2
+      return 4 ;;
+  esac
 }
 
 # Decide what linking to $1 would do. Prints action; never changes anything.
@@ -151,7 +160,11 @@ plan_action() {
   target_n="$(count_files "$target")"
   case "$mode" in
     linked|broken)
-      if [[ "$(readlink "$DATA")" == "$target" ]]; then echo noop; else echo repoint; fi ;;
+      if [[ "$(readlink "$DATA")" == "$target" ]] || [[ -e "$target" && "$DATA" -ef "$target" ]]; then
+        echo noop
+      else
+        echo repoint
+      fi ;;
     in-repo)
       if (( local_n > 0 && target_n > 0 )); then echo conflict
       elif (( local_n > 0 )); then echo move
@@ -237,7 +250,8 @@ cmd_apply() {
   [[ "$dry" == true ]] && return 0
 
   case "$action" in
-    noop) ;;
+    noop)
+      [[ -n "$(iago_configured_dir "$REPO_ROOT")" ]] || record_configured "$target" ;;
     create|link)
       mkdir -p "$target"
       require_outside_repo "$target"
@@ -260,6 +274,7 @@ cmd_apply() {
       echo "backup=$(tilde "$backup")"
       make_link "$target" ;;
   esac
+  [[ "$action" == noop ]] || record_configured "$target"
   echo "result=ok"
 }
 

@@ -211,6 +211,58 @@ check "empty target: exit 0" test "$rc" = 0
 check "empty target: linked" test -L "$r/data"
 check "empty target: files present" test -f "$t/daily-runs/2026-01-01.md"
 check "empty target: no staging left" test -z "$(ls -d "$t".iago-partial.* 2>/dev/null)"
+# --- section: configured ---
+cfg() { git -C "$1" config --local --get iago.dataDir; }
+echo "configured: link-data records this machine's folder in git config"
+r="$(new_repo cfg-create)"; t="$SANDBOX/cfg-create-target"
+link "$r" "$t" >/dev/null
+check "create sets iago.dataDir" test "$(cfg "$r")" = "$t"
+check "status configured= (tilde form)" test "$(HOME="$SANDBOX" link "$r" --status | field configured)" = "~/cfg-create-target"
+b="$SANDBOX/cfg-create-B"; link "$r" "$b" >/dev/null
+check "repoint updates iago.dataDir" test "$(cfg "$r")" = "$b"
+git -C "$r" config --local --unset iago.dataDir
+link "$r" "$b" >/dev/null
+check "noop sets iago.dataDir when unset" test "$(cfg "$r")" = "$b"
+r="$(new_repo cfg-move)"; seed "$r/data"; t="$SANDBOX/cfg-move-target"; link "$r" "$t" >/dev/null
+check "move sets iago.dataDir" test "$(cfg "$r")" = "$t"
+r="$(new_repo cfg-force)"; seed "$r/data"; t="$SANDBOX/cfg-force-target"; seed "$t"; link "$r" --force "$t" >/dev/null 2>&1
+check "conflict --force sets iago.dataDir" test "$(cfg "$r")" = "$t"
+r="$(new_repo cfg-status)"
+check "status configured= empty when unset" test "$(link "$r" --status | grep -c '^configured=$')" = 1
+r="$(new_repo cfg-dry)"; link "$r" --dry-run "$SANDBOX/cfg-dry-target" >/dev/null
+check "dry-run records nothing" test -z "$(cfg "$r")"
+
+echo "configured: git checkout of an old commit must not cause split-brain"
+r="$(new_repo checkout)"; main_branch="$(git -C "$r" symbolic-ref --short HEAD)"
+(cd "$r" && git checkout -qb old && printf 'data/*\n!data/.gitkeep\n' > .gitignore && mkdir -p data && touch data/.gitkeep \
+  && git add .gitignore data/.gitkeep && git -c user.email=t@t -c user.name=t commit -qm old && git checkout -q "$main_branch")
+t="$SANDBOX/checkout-target"; seed "$t"
+link "$r" "$t" >/dev/null
+(cd "$r" && git checkout -q old 2>/dev/null; git checkout -q "$main_branch" 2>/dev/null)
+check "external files survive the checkouts" test -f "$t/daily-runs/2026-01-01.md"
+bash "$r/scripts/run-daily-search.sh" >/dev/null 2>"$SANDBOX/checkout.err"; rc=$?
+check "run-daily-search exit 4" test "$rc" = 4
+check "no fresh data/ dir created" test ! -d "$r/data" -o -L "$r/data"
+check "error names the configured folder" grep -q "link-data.sh \"$t\"" "$SANDBOX/checkout.err"
+bash "$r/scripts/init-data.sh" --keep-in-repo >/dev/null 2>&1; rc=$?
+check "init-data exit 4" test "$rc" = 4
+check "init-data created no data/" test ! -d "$r/data" -o -L "$r/data"
+link "$r" --status >/dev/null 2>&1; rc=$?
+check "status exit 4" test "$rc" = 4
+check "status mode=unlinked" test "$(link "$r" --status 2>/dev/null | field mode)" = unlinked
+link "$r" "$t" >/dev/null 2>&1; rc=$?
+check "re-link exit 0" test "$rc" = 0
+check "re-link restores symlink" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
+check "status linked after re-link" test "$(link "$r" --status | field mode)" = linked
+echo "configured: old checkout left a placeholder-only data/ dir"
+r="$(new_repo placeholder)"; t="$SANDBOX/placeholder-target"; seed "$t"; link "$r" "$t" >/dev/null
+rm "$r/data"; mkdir "$r/data"; touch "$r/data/.gitkeep" "$r/data/.DS_Store"
+check "placeholder dir: status unlinked" test "$(link "$r" --status 2>/dev/null | field mode)" = unlinked
+bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1; rc=$?
+check "placeholder dir: run-daily-search exit 4" test "$rc" = 4
+out="$(link "$r" "$t" 2>/dev/null)"; rc=$?
+check "placeholder dir: action=link" test "$(echo "$out" | field action)" = link
+check "placeholder dir: relinked" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
