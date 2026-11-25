@@ -117,6 +117,28 @@ bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1; rc=$?
 check "run-daily-search exit 4" test "$rc" = 4
 bash "$r/scripts/reconcile-config.sh" >/dev/null 2>&1; rc=$?
 check "reconcile-config exit 4" test "$rc" = 4
+# --- section: init-data ---
+echo "init-data flags"
+r="$(new_repo init-broken)"; t="$SANDBOX/target-init-broken"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm -rf "$t"
+bash "$r/scripts/init-data.sh" --keep-in-repo >/dev/null 2>&1; rc=$?
+check "broken link: init-data exit 4" test "$rc" = 4
+check "broken link: no empty folder created at target" test ! -e "$t"
+r="$(new_repo init-ext)"; t="$SANDBOX/target-init-ext"
+bash "$r/scripts/init-data.sh" --data-dir "$t" >/dev/null 2>&1
+check "--data-dir links" test -L "$r/data"
+check "--data-dir copies templates into target" test -f "$t/config.yaml"
+r="$(new_repo init-existing)"; t="$SANDBOX/target-init-existing"; seed "$t"
+sum_before="$(cd "$t" && find . -type f -exec cksum {} + | sort)"
+bash "$r/scripts/init-data.sh" --data-dir "$t" >/dev/null 2>&1
+check "existing config untouched" test "$(cat "$t/config.yaml")" = "a: 1"
+check "existing files unchanged" test -z "$(comm -23 <(echo "$sum_before") <(cd "$t" && find . -type f -exec cksum {} + | sort))"
+r="$(new_repo init-keep)"
+bash "$r/scripts/init-data.sh" --keep-in-repo >/dev/null 2>&1
+check "--keep-in-repo makes real dir" test -d "$r/data" -a ! -L "$r/data"
+check "--keep-in-repo has config" test -f "$r/data/config.yaml"
+r="$(new_repo init-noninteractive)"
+bash "$r/scripts/init-data.sh" </dev/null >/dev/null 2>&1
+check "no tty defaults to in-repo" test -d "$r/data" -a ! -L "$r/data"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
