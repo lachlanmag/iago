@@ -1090,3 +1090,4 @@ Plan saved to `docs/plans/2026-11-25-external-data-dir.md`. Options:
 18. A target holding only `.gitkeep`/`.DS_Store` files and empty folders is cleared of those before the move (only when it has no real files).
 19. No lock (YAGNI); README notes say not to change the data folder while a daily search runs.
 20. `upgrade-iago-version.sh` expands its possibly-empty `reconcile_args` with `${a[@]+"${a[@]}"}` (bash 3.2 `set -u`); sandbox test added. Other array expansions in `scripts/` were already guarded or never empty.
+21. Copy verification compares symlinks as links (`diff -rq --no-dereference`, probed): GNU diff failed moves on any already-dangling symlink and Apple diff silently skipped symlinks.

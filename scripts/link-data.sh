@@ -207,6 +207,15 @@ copy_kept_fail() {
   return 1
 }
 
+# True when two folders have identical contents. Symlinks are compared as
+# links (GNU diff otherwise fails on dangling ones and Apple diff ignores
+# them); --no-dereference is probed because older diffs lack it.
+same_tree() {
+  local opt=""
+  diff --no-dereference /dev/null /dev/null >/dev/null 2>&1 && opt="--no-dereference"
+  diff -rq $opt "$1" "$2" >/dev/null 2>&1
+}
+
 # Relative paths of symlinks under $1 that do not resolve.
 dangling_links() {
   (cd "$1" && find -L . -type l 2>/dev/null | sort) || true
@@ -237,7 +246,7 @@ move_data() {
   if ! cp -Rp "$DATA/." "$staging/"; then
     move_fail "copy failed" "$staging"; return 1
   fi
-  if ! diff -rq "$DATA" "$staging" >/dev/null 2>&1; then
+  if ! same_tree "$DATA" "$staging"; then
     move_fail "copy verification failed (contents differ)" "$staging"; return 1
   fi
   after="$(count_files "$staging")"
@@ -263,7 +272,7 @@ move_data() {
   mv "$staging" "$target" || { move_fail "could not move $(tilde "$staging") to $(tilde "$target")" "$staging"; return 1; }
   # Something (e.g. a sync client) may have re-created the target in between,
   # in which case mv nested the staging folder inside it.
-  if [[ -e "$staging" ]] || ! diff -rq "$DATA" "$target" >/dev/null 2>&1 \
+  if [[ -e "$staging" ]] || ! same_tree "$DATA" "$target" \
      || [[ "$(count_files "$target")" != "$before" ]]; then
     copy_kept_fail "could not verify the moved copy in $(tilde "$target")" "$target"; return 1
   fi
