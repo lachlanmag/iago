@@ -29,13 +29,13 @@ Open the repo root in Cursor (the folder that contains `.cursor/skills/`) and st
 
 Trigger phrases: set up job search, configure job search, job search onboarding, `/iago-setup`.
 
-The setup skill initializes `data/` if needed, then walks you through location, role priorities, resume path, search boards, and watch list, and writes `data/config.yaml`.
+Setup first asks **where to store your data**: pick a folder your sync tool already syncs (Nextcloud, Google Drive, Syncthing, …) to use Iago on several computers, or keep it inside the repo. It then initializes the data folder and walks you through location, role priorities, resume path, search boards, and watch list, and writes `data/config.yaml`.
 
 ### 3. Run your first search
 
 > Run the daily job search
 
-**Manual alternative:** run `bash scripts/init-data.sh`, then edit `data/config.yaml` directly (`profile.resume_path`, `profile.location`, role priorities, search sources). Optional: `profile.output_language` for research, prep, and feedback artifacts.
+**Manual alternative:** run `bash scripts/init-data.sh` (it asks where to store data; or pass `--data-dir <folder>` / `--keep-in-repo`), then edit `data/config.yaml` directly (`profile.resume_path`, `profile.location`, role priorities, search sources). Optional: `profile.output_language` for research, prep, and feedback artifacts.
 
 
 
@@ -291,6 +291,7 @@ iago/
   skills/                            # Canonical workflow content (shared by both platforms)
     iago-daily/
     iago-setup/
+    iago-data-location/
     iago-pipeline-review/
     update-application/
     company-research/
@@ -299,6 +300,7 @@ iago/
   .cursor/skills/                    # Cursor skill entrypoints (symlinked or copied from skills/)
     iago-daily/                    # Daily search; /iago, /iago-daily
     iago-setup/                    # Onboarding; /iago-setup
+    iago-data-location/            # Data folder location; /iago-data-location
     iago-upgrade-version/          # Version upgrade; /iago-upgrade-version
     iago-pipeline-review/          # Pipeline triage; /iago-pipeline
     update-application/            # Tracker updates; /iago-update, /update-application
@@ -308,6 +310,7 @@ iago/
   .claude/skills/                    # Claude Code skill entrypoints (symlinked or copied from skills/)
     iago-daily/
     iago-setup/
+    iago-data-location/
     iago-pipeline-review/
     update-application/
     company-research/
@@ -316,6 +319,7 @@ iago/
   .hermes/skills/                    # Hermes Agent skill entrypoints (symlinked or copied from skills/)
     iago-daily/
     iago-setup/
+    iago-data-location/
     iago-upgrade-version/
     iago-pipeline-review/
     update-application/
@@ -324,8 +328,8 @@ iago/
     resume-feedback/
   assets/                            # Logo and favicon
   examples/                          # Templates to copy into data/
-  data/                              # Your local state (gitignored)
-  scripts/                           # init-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, upgrade-iago-version.sh, run-daily-search.sh, sync-daily-driver.sh (maintainer)
+  data/                              # Your local state (gitignored; folder or per-machine link)
+  scripts/                           # init-data.sh, link-data.sh, install-skills.sh, verify-workspace.sh, reconcile-config.sh, upgrade-iago-version.sh, run-daily-search.sh, sync-daily-driver.sh (maintainer)
   favicon.ico                        # Browser favicon (16/32/48)
   favicon.png                        # Favicon PNG (32×32)
   docs/ROADMAP.md                    # Future work and gaps
@@ -335,7 +339,7 @@ iago/
 
 ### Local data
 
-Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-Matcher) (`apps/backend/data/`): personal files live in a gitignored directory inside the repo.
+Personal files live in `data/`, which git always ignores. By default that is a folder inside the repo; you can instead point it at a folder anywhere on this machine (see [Storing data outside the repo](#storing-data-outside-the-repo)).
 
 
 | File                             | Purpose                                       |
@@ -354,6 +358,23 @@ Following the same pattern as [Resume-Matcher](https://github.com/srbhr/Resume-M
 
 
 Nothing under `data/` is committed. Run `git status` after a daily search or pipeline review to confirm.
+
+### Storing data outside the repo
+
+Use this to sync your job search between computers with any tool, without the data ever being inside the git checkout.
+
+- **In chat:** "Change my Iago data folder" (or `/iago-data-location`). It shows where data is now, lets you pick a folder, previews the change, and asks before doing anything.
+- **Terminal:** `bash scripts/link-data.sh <folder>` (`--status` to check, `--dry-run` to preview).
+
+On the first computer, your existing `data/` is moved into the folder. On each other computer, clone Iago and pick that computer's copy of the synced folder; paths can differ per machine (e.g. `~/Nextcloud/iago-data` on a Mac, `~/sync/iago-data` on Linux). Iago links to existing data and never overwrites it. If both places already contain data, nothing changes until you choose which to keep.
+
+Notes:
+- Iago does not sync anything; your sync tool does.
+- Sync only the data folder. Keep the repo itself out of synced folders: syncing `.git` causes "conflicted copy" files and corrupt repos.
+- If the synced folder is missing (drive not mounted), Iago scripts stop with a message instead of starting an empty data folder.
+- Store your resume in the data folder (e.g. `resumes/master-resume.md`) and use that relative `profile.resume_path` so it works on every computer.
+- macOS and Linux. On Windows, run Iago under WSL.
+- Checking out an old Iago version (before this feature) while `data` is a link may fail: git will not write `data/.gitkeep` through a symlink.
 
 ## Roadmap
 
