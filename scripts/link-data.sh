@@ -180,6 +180,43 @@ make_link() {
   ln -sfn "$1" "$DATA"
 }
 
+move_fail() {
+  echo "error: $1; data/ left in place, nothing removed." >&2
+  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(tilde "$2") (safe to delete)." >&2
+  return 1
+}
+
+# Copy data/ into a staging folder next to the target, verify it, move the
+# staging folder into place, and only then remove the in-repo data/.
+move_data() {
+  local target="$1" parent staging before after
+  parent="$(dirname "$target")"
+  staging="$parent/$(basename "$target").iago-partial.$$"
+  mkdir -p "$parent" || { move_fail "could not create $(tilde "$parent")"; return 1; }
+  require_outside_repo "$target"
+  require_outside_repo "$staging"
+  mkdir "$staging" || { move_fail "could not create $(tilde "$staging")"; return 1; }
+  before="$(count_files "$DATA")"
+  if ! cp -Rp "$DATA/." "$staging/"; then
+    move_fail "copy failed" "$staging"; return 1
+  fi
+  if ! diff -rq "$DATA" "$staging" >/dev/null 2>&1; then
+    move_fail "copy verification failed (contents differ)" "$staging"; return 1
+  fi
+  after="$(count_files "$staging")"
+  if [[ "$after" != "$before" ]]; then
+    move_fail "copy verification failed ($before files in data/, $after copied)" "$staging"; return 1
+  fi
+  if [[ -d "$target" && ! -L "$target" ]]; then
+    rm -f "$target/.DS_Store"
+    rmdir "$target" 2>/dev/null || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+  elif [[ -e "$target" || -L "$target" ]]; then
+    move_fail "$(tilde "$target") exists and is not a folder" "$staging"; return 1
+  fi
+  mv "$staging" "$target" || { move_fail "could not move $(tilde "$staging") to $(tilde "$target")" "$staging"; return 1; }
+  rm -rf "$DATA"
+}
+
 cmd_apply() {
   local target="$1" dry="$2" force="$3" action
   action="$(plan_action "$target")"
@@ -208,17 +245,7 @@ cmd_apply() {
       [[ -d "$DATA" && ! -L "$DATA" ]] && rm -rf "$DATA"
       make_link "$target" ;;
     move)
-      local before after
-      before="$(count_files "$DATA")"
-      mkdir -p "$target"
-      require_outside_repo "$target"
-      cp -Rp "$DATA/." "$target/"
-      after="$(count_files "$target")"
-      if [[ "$after" != "$before" ]]; then
-        echo "error: copy verification failed ($before files in data/, $after in target); data/ left in place." >&2
-        return 1
-      fi
-      rm -rf "$DATA"
+      move_data "$target" || return 1
       make_link "$target" ;;
     repoint)
       mkdir -p "$target"

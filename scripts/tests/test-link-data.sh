@@ -6,7 +6,7 @@ set -uo pipefail
 SRC_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
 SANDBOX="$(mktemp -d)"
 SANDBOX="$(cd "$SANDBOX" && pwd -P)"
-trap 'rm -rf "$SANDBOX"' EXIT
+trap 'chmod -R u+rwX "$SANDBOX" 2>/dev/null; rm -rf "$SANDBOX"' EXIT
 export HOME="$SANDBOX/home"
 mkdir -p "$HOME"
 
@@ -187,6 +187,30 @@ check "parent: nothing written" test "$(find "$SANDBOX/parent" | sort)" = "$befo
 bash "$r/scripts/init-data.sh" --data-dir "$SANDBOX/parent" >/dev/null 2>&1; rc=$?
 check "init-data --data-dir parent: fails" test "$rc" != 0
 check "init-data: no config.yaml spewed into parent" test ! -e "$SANDBOX/parent/config.yaml"
+# --- section: move-staging ---
+if [[ "$(id -u)" == 0 ]]; then
+  echo "  skip failed-move test (running as root: chmod 000 is not enforced)"
+else
+  echo "move: copy failure leaves data/ intact and the target clean"
+  r="$(new_repo movefail)"; seed "$r/data"; echo "s" > "$r/data/secret.yaml"; chmod 000 "$r/data/secret.yaml"
+  t="$SANDBOX/movefail-target"
+  err="$(link "$r" "$t" 2>&1 >/dev/null)"; rc=$?
+  chmod 644 "$r/data/secret.yaml"
+  check "failed move: exit 1" test "$rc" = 1
+  check "failed move: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+  check "failed move: all files still in data/" test "$(find "$r/data" -type f | wc -l | tr -d ' ')" = 3
+  check "failed move: error names the staging folder" grep -q "movefail-target.iago-partial" <<< "$err"
+  check "failed move: no partial files at target" test -z "$(find "$t" -type f 2>/dev/null)"
+  check "failed move: no config recorded" test -z "$(git -C "$r" config --local --get iago.dataDir)"
+  chmod -R u+rwX "$SANDBOX"/movefail-target.iago-partial.* 2>/dev/null
+fi
+echo "move: into an existing empty folder (with .DS_Store)"
+r="$(new_repo moveempty)"; seed "$r/data"; t="$SANDBOX/moveempty-target"; mkdir -p "$t"; touch "$t/.DS_Store"
+link "$r" "$t" >/dev/null 2>&1; rc=$?
+check "empty target: exit 0" test "$rc" = 0
+check "empty target: linked" test -L "$r/data"
+check "empty target: files present" test -f "$t/daily-runs/2026-01-01.md"
+check "empty target: no staging left" test -z "$(ls -d "$t".iago-partial.* 2>/dev/null)"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
