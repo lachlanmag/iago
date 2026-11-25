@@ -66,17 +66,17 @@ If `data/config.yaml` exists with non-placeholder values, present choices and as
 | **Update config** | Section-by-section edits only |
 | **Cancel** | Stop without writes |
 
-**Placeholder signals:** `Your City, State`, `/path/to/your/master-resume.md`, `Example SaaS Co`, empty `proof_points` with otherwise example-only config.
+**Placeholder signals:** `Your City, State`, `resumes/YOUR-RESUME.md`, `Example SaaS Co`, empty `proof_points` with otherwise example-only config.
 
 ### 2. Profile
 
 Collect and confirm:
 
-- `profile.resume_path` (absolute path; **verify file exists** before continuing)
+- `profile.resume_path` (**verify file exists** before continuing, resolving per resume-feedback "Resolve `profile.resume_path`")
 - `profile.location` (city, state/region, country as user prefers)
 - `profile.willing_to_relocate` (boolean)
 
-Suggest keeping the resume outside this repo.
+Suggest copying the resume into the data folder (`data/resumes/`) and saving a relative path such as `resumes/master-resume.md`: it stays out of git and syncs with the rest of the data. Absolute or `~/` paths still work but may not exist on the user's other machines.
 
 ### 3. Roles
 
@@ -155,7 +155,7 @@ Collect `watch_companies`: company names to monitor on ATS boards (Lever, Workab
 
 | Check | On failure |
 |-------|------------|
-| `profile.resume_path` exists | Block save; ask for corrected path |
+| `profile.resume_path` exists (resolved per the rule above) | Block save; ask for corrected path |
 | At least one search source enabled | Block save |
 | URLs resolve (fetch or browser) | Warn; allow save if user confirms |
 

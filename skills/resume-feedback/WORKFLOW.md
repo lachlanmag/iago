@@ -52,6 +52,8 @@ If any input is missing, ask once with concrete options (e.g. company from track
 
 **Resume markdown (matcher off):** Load from `profile.resume_path` unless the user supplies a path or inline paste. Do not convert to JSON.
 
+**Resolve `profile.resume_path`:** relative paths are relative to the data folder (`$REPO_ROOT/data/<path>`, which follows the data symlink); `~/…` expands to the user's home; absolute paths are used as-is. Prefer relative (e.g. `resumes/master-resume.md`) so the same config works on every synced machine.
+
 **Master resume resolution** (`integrations.resume_matcher.master_resume_source`, default `file`):
 
 - `api`: `GET {api_base_url}/api/v1/resumes/list?include_master=true`, pick the row with `is_master: true` (prefer `is_default_master: true` when more than one), then `GET {api_base_url}/api/v1/resumes?resume_id={id}` and use `data.raw_resume.content` as the master resume (format follows `data.raw_resume.content_type`: `json` or `md`). On connection failure or empty result, fall back to `profile.resume_path` and note the fallback to the user.

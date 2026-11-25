@@ -14,7 +14,7 @@
 |------|---------|
 | `$REPO_ROOT/data/applications.yaml` | Shortlisted role row (company, title, url, industry, resume_fit, notes) |
 | `$REPO_ROOT/data/config.yaml` | `profile.resume_path`, `integrations.resume_matcher.master_resume_source`/`api_base_url`, industry awareness, resume fit themes |
-| Master resume (`profile.resume_path`, or Resume Matcher API when `master_resume_source: api`) | For fit angle (read only; do not commit) |
+| Master resume (`profile.resume_path`, or Resume Matcher API when `master_resume_source: api`) | For fit angle (read only; do not commit) (resolve per resume-feedback "Resolve `profile.resume_path`") |
 | User `jd_path` on tracker row | Saved JD markdown if already set (external or `$REPO_ROOT/data/jds/`) |
 | `$REPO_ROOT/data/jds/` | Full job descriptions cached on shortlist (gitignored) |
 | `$REPO_ROOT/skills/company-research/prompt.md` | **Mandatory brief prompt** (apply verbatim after research) |
