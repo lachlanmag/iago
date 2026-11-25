@@ -58,7 +58,8 @@ Decide where this computer keeps Iago data **before** any data file is created. 
 
    | `mode` | Action |
    |--------|--------|
-   | `missing` (fresh clone) | **Always ask:** "Where should Iago keep your job search data? To use Iago on more than one computer, pick a folder your sync tool (Nextcloud, Google Drive, Syncthing, …) already syncs. Or keep it inside the Iago repo." Choices: **Pick a folder** (recommended) / **Type a path** / **Keep in repo**. Remember the choice for step 1 (`--data-dir "<folder>"` or `--keep-in-repo`). For a folder, preview with `--dry-run` and confirm, but let step 1's `init-data.sh --data-dir` do the linking. |
+   | `missing` (fresh clone) | **Always ask:** "Where should Iago keep your job search data? To use Iago on more than one computer, pick a folder your sync tool (Nextcloud, Google Drive, Syncthing, …) already syncs. Or keep it inside the Iago repo." Choices: **Pick a folder** (recommended) / **Type a path** / **Keep in repo**. Remember the choice for step 1: `--data-dir "<target>"` using the resolved `target=` from the dry-run (expanded absolute or `~` form), or `--keep-in-repo`. For a folder, preview with `--dry-run` and confirm, but let step 1's `init-data.sh --data-dir` do the linking. |
+   | `in-repo` with no files (`files=0`) | Treat as `missing`: ask the same question and remember the choice for step 1. |
    | `in-repo` with files | Say where the data is and offer **Move to a folder outside the repo** (run the iago-data-location flow now) or **Keep as is**. Never force a move. |
    | `linked` | Say "Using `<target>`." and continue without asking. |
    | `broken` | Stop setup. Offer **Pick a different folder** or **I'll reconnect the sync folder**. Never initialize an empty folder at the missing path. |
@@ -72,7 +73,7 @@ Decide where this computer keeps Iago data **before** any data file is created. 
 
 Check whether core files exist: `$REPO_ROOT/data/config.yaml`, `$REPO_ROOT/data/applications.yaml`, `$REPO_ROOT/data/seen-jobs.yaml`.
 
-If any are missing, run `init-data.sh` with the choice from step 0b (never bare, so it does not prompt a second time):
+If any are missing, run `init-data.sh` with the choice from step 0b (never bare, so it does not prompt a second time). If 0b found `linked`, pass `--data-dir "<target from --status>"` (a no-op link); if `in-repo` and the user kept it, pass `--keep-in-repo`:
 
 ```bash
 bash "$REPO_ROOT/scripts/init-data.sh" --data-dir "<chosen folder>"   # or: --keep-in-repo
@@ -88,7 +89,7 @@ If `data/config.yaml` exists with non-placeholder values, present choices and as
 | **Update config** | Section-by-section edits only |
 | **Cancel** | Stop without writes |
 
-**Placeholder signals:** `Your City, State`, `resumes/YOUR-RESUME.md`, `Example SaaS Co`, empty `proof_points` with otherwise example-only config.
+**Placeholder signals:** `Your City, State`, `resumes/YOUR-RESUME.md` or `/path/to/your/master-resume.md` (older example), `Example SaaS Co`, empty `proof_points` with otherwise example-only config.
 
 ### 2. Profile
 
@@ -98,7 +99,7 @@ Collect and confirm:
 - `profile.location` (city, state/region, country as user prefers)
 - `profile.willing_to_relocate` (boolean)
 
-Suggest copying the resume into the data folder (`data/resumes/`) and saving a relative path such as `resumes/master-resume.md`: it stays out of git and syncs with the rest of the data. Absolute or `~/` paths still work but may not exist on the user's other machines.
+Suggest copying the resume into the data folder (`data/resumes/`) and saving a relative path such as `resumes/master-resume.md`: it stays out of git and syncs with the rest of the data. Absolute paths may not exist on the user's other machines; `~/` paths work if the file is at the same place under each machine's home folder.
 
 ### 3. Roles
 

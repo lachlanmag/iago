@@ -30,3 +30,4 @@ When workspace root ≠ `REPO_ROOT`, prefix all Iago paths and scripts with `$RE
 
 - Ask multi-choice questions in chat (pick folder / type path / keep in repo).
 - Run scripts in the integrated terminal on the user's behalf; do not ask the user to type commands.
+- After `install-skills.sh --platform cursor` (or `--platform both`), tell user: Cmd+Shift+P → Developer: Reload Window.

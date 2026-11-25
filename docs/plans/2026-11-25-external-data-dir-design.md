@@ -36,7 +36,7 @@ Why a symlink rather than an env var or pointer file:
 
 | State | Behaviour |
 |---|---|
-| `data/` is a real dir with content, target missing/empty | Copy contents → target, verify file count + bytes match, remove the original `data/`, create the symlink. |
+| `data/` is a real dir with content, target missing/empty | Copy contents to a staging folder next to the target, verify (`diff -rq` + file count, no newly dangling relative symlinks), move it into place and verify again, rename `data/` aside, create the symlink, then delete the renamed copy (a failed delete only warns). |
 | `data/` missing/empty, target has content (2nd machine) | Create the symlink. |
 | `data/` missing/empty, target missing/empty | Create target, create the symlink (fresh setup). |
 | Both have content | Refuse with a clear message. `--force` links anyway and leaves the local copy at `data.local-backup-<timestamp>/`. Never merges, never deletes. |

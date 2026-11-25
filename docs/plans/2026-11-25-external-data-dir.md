@@ -1078,3 +1078,15 @@ Plan saved to `docs/plans/2026-11-25-external-data-dir.md`. Options:
 9. `init-data.sh` rejects `--data-dir` together with `--keep-in-repo` (exit 1).
 10. `reconcile-config.py` uses `os.readlink` (works before Python 3.9).
 11. Tests added for `--status` exit 0 (missing/in-repo/linked), dry-run of every action changing nothing (conflict exits 2), and byte-identical moves.
+
+### Final-review fixes
+
+12. After the final `mv` into the target, the move is re-verified (staging path gone, `diff -rq data/ <target>` clean, counts match); otherwise exit 1 with `data/` intact and the error names the copy in the target (covers a sync client re-creating the target between `rmdir` and `mv`).
+13. `data/` is renamed aside to `data.iago-moved.<pid>` (atomic, same folder), then linked and recorded, then deleted. A failed delete is a warning plus `leftover=<path>` with exit 0; a failed rename aborts with `data/` intact. `/data.iago-moved.*/` is gitignored.
+14. Moves fail (before the target is touched) when relative symlinks in `data/` would dangle from the new location; links that were already dangling are allowed.
+15. `noop` records `iago.dataDir` whenever it is missing or does not match the target.
+16. `iago.dataDir` is only read or written when `git rev-parse --show-toplevel` is the Iago folder itself (shared `iago_own_git_repo` helper in `scripts/lib/data-dir.sh`), so a copy without `.git` never uses an enclosing repo's config.
+17. Worktrees share `iago.dataDir` (`--local`); documented in README notes that each worktree must link to the same folder.
+18. A target holding only `.gitkeep`/`.DS_Store` files and empty folders is cleared of those before the move (only when it has no real files).
+19. No lock (YAGNI); README notes say not to change the data folder while a daily search runs.
+20. `upgrade-iago-version.sh` expands its possibly-empty `reconcile_args` with `${a[@]+"${a[@]}"}` (bash 3.2 `set -u`); sandbox test added. Other array expansions in `scripts/` were already guarded or never empty.

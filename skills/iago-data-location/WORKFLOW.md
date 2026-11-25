@@ -28,13 +28,13 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 |---------|-------------|
 | `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`, `unlinked`, `other`), `repo`, `configured` (folder this computer is set to use, `~` form; empty if never linked), `target`, `files`, `kb` |
 | `bash "$REPO_ROOT/scripts/link-data.sh" --dry-run "<folder>"` | `action`, `mode`, `target`, `local_files`, `local_kb`, `target_files`, `target_kb` |
-| `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used). Records `<folder>` as this computer's configured folder. |
-| Either, when `data` is a file (`mode=other`) | Only `mode=other`; exits 1 without changing anything |
+| `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used; `leftover=` when a move could not fully delete the old in-repo copy). Records `<folder>` as this computer's configured folder. |
+| `--dry-run` or apply, when `data` is a file (`mode=other`) | Only `mode=other`; exits 1 without changing anything. (`--status` prints all its keys and also exits 1.) |
 
 | Exit | Meaning |
 |------|---------|
 | 0 | OK |
-| 1 | Usage error; `data` is a file, not a folder (`mode=other`); or the move's copy/verification failed (nothing removed from `data/`; a partial copy may remain at `<folder>.iago-partial.<pid>`, named in the error) |
+| 1 | Usage error; `data` is a file, not a folder (`mode=other`); or the move failed (nothing removed from `data/`). The error names where any copy is: a partial copy at `<folder>.iago-partial.<pid>` (safe to delete), or a full copy already in `<folder>` when the final check failed (for example the sync tool re-created the folder mid-move). It also fails, before touching `<folder>`, when relative symlinks in `data/` would break after the move. |
 | 2 | Conflict: both `data/` and the folder have files; nothing changed |
 | 3 | Refused: folder is inside the Iago repo, or contains it (e.g. a parent folder or `~`) |
 | 4 | `--status` only: `data` points at a folder that does not exist (`broken`), or `data` is not linked to the configured folder (`unlinked`, e.g. after a git checkout of an old Iago version) |
@@ -91,7 +91,11 @@ Run `--dry-run "<folder>"`, describe the `action` using the table above (convert
 
 ### 5. Apply and confirm
 
-Run `link-data.sh "<folder>"`, then `--status`, and report the new location and file count. If called from `iago-setup`, return to setup.
+Run `link-data.sh "<folder>"`, then `--status`, and report the new location and file count. If called from `iago-setup` while `mode=missing`, skip this step and return the confirmed folder to setup (setup links it via `init-data.sh --data-dir`); otherwise apply here, then return to setup.
+
+If the output has `leftover=`, the move succeeded but the old in-repo copy could not be fully deleted (usually a read-only file or folder). Tell the user their data is safe in the linked folder and that the `leftover` folder (inside the repo, gitignored) can be deleted.
+
+On exit 1 after a move, report the error's copy location as printed, and say `data/` was left in place. Never delete the copy in `<folder>` without asking.
 
 ### 6. Conflict (exit 2)
 
@@ -112,7 +116,7 @@ Never merge the two automatically.
 
 ## Rules
 
-- Never delete user data. The script only removes the in-repo `data/` after a verified copy.
+- Never delete user data. The script only removes the in-repo `data/` after a verified copy is in place and linked.
 - Never edit `.gitignore`, never `git add` anything under `data/`, never commit.
 - Never pass `--force` without explicit confirmation in step 6.
 - Paths shown to the user use `~/…` form, as the script prints them.

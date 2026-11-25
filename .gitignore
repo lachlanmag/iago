@@ -1,4 +1,4 @@
-# Local job search data (Resume-Matcher pattern)
+# Local job search data: in-repo folder or per-machine symlink (see scripts/link-data.sh)
 /data
 /data.local-backup-*/
 /data.iago-moved.*/
