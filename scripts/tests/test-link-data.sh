@@ -110,6 +110,13 @@ r="$(new_repo gitignore-inrepo)"; seed "$r/data"
 check "in-repo data ignored too" test -z "$(cd "$r" && git status --porcelain)"
 link "$r" --force "$SANDBOX/gi2" >/dev/null 2>&1; seed "$SANDBOX/gi2"; mkdir -p "$r/data.local-backup-x"; echo y > "$r/data.local-backup-x/f"
 check "backup dirs ignored" test -z "$(cd "$r" && git status --porcelain)"
+# --- section: guard ---
+echo "guard: broken link stops scripts"
+r="$(new_repo guard)"; t="$SANDBOX/guard-gone"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm -rf "$t"
+bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1; rc=$?
+check "run-daily-search exit 4" test "$rc" = 4
+bash "$r/scripts/reconcile-config.sh" >/dev/null 2>&1; rc=$?
+check "reconcile-config exit 4" test "$rc" = 4
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"

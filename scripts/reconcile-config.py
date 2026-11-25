@@ -81,6 +81,15 @@ def main() -> int:
         print(f"Missing example config: {args.example}", file=sys.stderr)
         return 1
 
+    data_link = root / "data"
+    if data_link.is_symlink() and not data_link.exists():
+        print(
+            f"data -> {data_link.readlink()} does not exist. Mount or sync that folder, "
+            f"or run: bash scripts/link-data.sh <folder>",
+            file=sys.stderr,
+        )
+        return 4
+
     if not args.config.is_file():
         print(
             f"Missing {args.config}. Run: bash scripts/init-data.sh",

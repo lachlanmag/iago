@@ -35,6 +35,9 @@ done
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="$REPO_ROOT/data"
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
+iago_require_data_dir "$REPO_ROOT" || exit $?
 LOG_DIR="$DATA_DIR/logs"
 mkdir -p "$LOG_DIR" "$DATA_DIR/daily-runs"
 
