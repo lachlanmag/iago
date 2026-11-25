@@ -1091,3 +1091,7 @@ Plan saved to `docs/plans/2026-11-25-external-data-dir.md`. Options:
 19. No lock (YAGNI); README notes say not to change the data folder while a daily search runs.
 20. `upgrade-iago-version.sh` expands its possibly-empty `reconcile_args` with `${a[@]+"${a[@]}"}` (bash 3.2 `set -u`); sandbox test added. Other array expansions in `scripts/` were already guarded or never empty.
 21. Copy verification compares symlinks as links (`diff -rq --no-dereference`, probed): GNU diff failed moves on any already-dangling symlink and Apple diff silently skipped symlinks.
+22. The renamed-aside `data/` is only deleted if it still matches the linked folder; otherwise it is kept, reported as `leftover=`, and the warning says it has newer changes (closes the write-during-move window). `--status` lists every `data.iago-moved.*` as `leftover=`.
+23. Folder paths containing a newline are refused (exit 1); `abspath` would otherwise truncate them.
+24. `make_link` confirms `data` is a link to the target; if `data/` was re-created as a real folder, it removes the nested link, fails, and the move rolls back (an empty re-created `data/` is removed first).
+25. Placeholder cleanup only deletes zero-byte `.gitkeep` files.

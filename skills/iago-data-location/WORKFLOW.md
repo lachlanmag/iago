@@ -26,7 +26,7 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 
 | Command | Output keys |
 |---------|-------------|
-| `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`, `unlinked`, `other`), `repo`, `configured` (folder this computer is set to use, `~` form; empty if never linked), `target`, `files`, `kb` |
+| `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`, `unlinked`, `other`), `repo`, `configured` (folder this computer is set to use, `~` form; empty if never linked), `target`, `files`, `kb`, and one `leftover=` line per old copy kept after a move |
 | `bash "$REPO_ROOT/scripts/link-data.sh" --dry-run "<folder>"` | `action`, `mode`, `target`, `local_files`, `local_kb`, `target_files`, `target_kb` |
 | `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used; `leftover=` when a move could not fully delete the old in-repo copy). Records `<folder>` as this computer's configured folder. |
 | `--dry-run` or apply, when `data` is a file (`mode=other`) | Only `mode=other`; exits 1 without changing anything. (`--status` prints all its keys and also exits 1.) |
@@ -93,7 +93,7 @@ Run `--dry-run "<folder>"`, describe the `action` using the table above (convert
 
 Run `link-data.sh "<folder>"`, then `--status`, and report the new location and file count. If called from `iago-setup` while `mode=missing`, skip this step and return the confirmed folder to setup (setup links it via `init-data.sh --data-dir`); otherwise apply here, then return to setup.
 
-If the output has `leftover=`, the move succeeded but the old in-repo copy could not be fully deleted (usually a read-only file or folder). Tell the user their data is safe in the linked folder and that the `leftover` folder (inside the repo, gitignored) can be deleted.
+If the output has `leftover=`, the move succeeded and the data is linked, but the old in-repo copy was kept: either it could not be fully deleted (read-only files), or something wrote to `data/` during the move so it holds changes the linked folder lacks (the warning on stderr says which). Tell the user which case applies. For the "changes" case, offer to compare it with the linked folder (`diff -rq "<leftover>" "$REPO_ROOT/data/"`) and copy any newer files across with their confirmation. Only then say the `leftover` folder (inside the repo, gitignored) can be deleted; never delete it yourself. `--status` keeps listing it as `leftover=` until it is gone.
 
 On exit 1 after a move, report the error's copy location as printed, and say `data/` was left in place. Never delete the copy in `<folder>` without asking.
 

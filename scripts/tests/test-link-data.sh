@@ -430,6 +430,40 @@ out="$(PATH="$SANDBOX/shim-py:$PATH" CURSOR_WORKSPACE="$r" "$BASH" "$r/scripts/u
 check "upgrade apply: exit 0" test "$rc" = 0
 [[ "$rc" == 0 ]] || echo "$out" | tail -2 | sed "s/^/    /"
 check "upgrade apply: reconcile called" grep -q "^stub_reconcile-config $" <<< "$out"
+
+# --- section: final-safety ---
+echo "move: write to data/ during rename-aside is kept, not deleted"
+r="$(new_repo late-write)"; seed "$r/data"; t="$SANDBOX/late-write-target"
+shim "$SANDBOX/shim-late" mv 'case "$2" in *iago-moved*) echo late > "$1/new-note.md" ;; esac; exec "$REAL" "$@"'
+out="$(PATH="$SANDBOX/shim-late:$PATH" bash "$r/scripts/link-data.sh" "$t" 2>"$SANDBOX/late.err")"; rc=$?
+aside="$(echo "$out" | field leftover)"
+check "late write: exit 0 (data linked)" test "$rc" = 0
+check "late write: leftover reported" test -n "$aside"
+check "late write: new file kept in leftover" test -f "$r/$(basename "$aside")/new-note.md"
+check "late write: warning mentions newer changes" grep -q "changes" "$SANDBOX/late.err"
+check "status reports leftover" test -n "$(link "$r" --status | field leftover)"
+
+echo "target path with a newline is refused"
+r="$(new_repo newline)"; seed "$r/data"; nl_target="$SANDBOX/nl-a
+b"
+link "$r" "$nl_target" >/dev/null 2>&1; rc=$?
+check "newline: exit 1" test "$rc" = 1
+check "newline: data/ untouched" test -d "$r/data" -a ! -L "$r/data"
+check "newline: nothing created" test ! -e "$SANDBOX/nl-a"
+
+echo "link refuses to nest inside a real data/ re-created after rename-aside"
+r="$(new_repo nest)"; seed "$r/data"; t="$SANDBOX/nest-target"
+shim "$SANDBOX/shim-nest" ln 'mkdir -p "${@: -1}"; exec "$REAL" "$@"'
+PATH="$SANDBOX/shim-nest:$PATH" bash "$r/scripts/link-data.sh" "$t" >/dev/null 2>&1; rc=$?
+check "nest: exit 1" test "$rc" = 1
+check "nest: no link nested in data/" test ! -L "$r/data/$(basename "$t")"
+check "nest: data/ restored with files" test -f "$r/data/config.yaml"
+
+echo "placeholder cleanup keeps a non-empty .gitkeep"
+r="$(new_repo gitkeep)"; seed "$r/data"; t="$SANDBOX/gitkeep-target"; mkdir -p "$t"; echo "notes" > "$t/.gitkeep"
+link "$r" "$t" >/dev/null 2>&1
+check "non-empty .gitkeep kept" test "$(cat "$t/.gitkeep" 2>/dev/null)" = notes
+check "data/ intact" test -f "$r/data/config.yaml"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"

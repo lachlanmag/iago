@@ -140,6 +140,11 @@ cmd_status() {
   esac
   echo "files=$(count_files "$DATA")"
   echo "kb=$(kb_of "$DATA")"
+  # Old copies kept after a move (see remove_moved_aside).
+  local aside
+  for aside in "$DATA".iago-moved.*; do
+    [[ -d "$aside" ]] && echo "leftover=$(tilde "$aside")"
+  done
   case "$mode" in
     broken|unlinked)
       echo "hint=$(iago_data_hint "$mode" "$REPO_ROOT" "$conf")" >&2
@@ -190,8 +195,18 @@ print_plan() {
   echo "target_kb=$(kb_of "$target")"
 }
 
+# Create data -> $1 and confirm it. If something re-created data/ as a real
+# folder first, ln would nest the link inside it: undo that and fail.
 make_link() {
-  ln -sfn "$1" "$DATA"
+  local nested
+  nested="$DATA/$(basename "$1")"
+  ln -sfn "$1" "$DATA" || return 1
+  if [[ -L "$DATA" && "$(readlink "$DATA")" == "$1" ]]; then
+    return 0
+  fi
+  [[ -L "$nested" && "$(readlink "$nested")" == "$1" ]] && rm -f "$nested"
+  echo "error: data/ was re-created as a folder while linking; link not made." >&2
+  return 1
 }
 
 move_fail() {
@@ -226,7 +241,7 @@ dangling_links() {
 clear_placeholders() {
   local t="$1"
   [[ "$(count_files "$t")" == 0 ]] || return 1
-  find "$t" -depth \( -name .DS_Store -o -name .gitkeep \) -type f -delete
+  find "$t" -depth -type f \( -name .DS_Store -o \( -name .gitkeep -size 0 \) \) -delete
   find "$t" -mindepth 1 -depth -type d -empty -delete
 }
 
@@ -286,7 +301,14 @@ move_data() {
 # Delete the renamed-aside data/ after the link is in place. Failure is only
 # a warning: the data is safe in the linked folder.
 remove_moved_aside() {
+  local target_for_aside="$1"
   [[ -n "$MOVED_ASIDE" ]] || return 0
+  # Something may have written to data/ after the last verification.
+  if ! same_tree "$MOVED_ASIDE" "$target_for_aside"; then
+    echo "leftover=$(tilde "$MOVED_ASIDE")"
+    echo "warning: the old copy at $(tilde "$MOVED_ASIDE") has changes that are not in the linked folder (something wrote to data/ during the move). It was kept: copy anything you need into data/, then delete it." >&2
+    return 0
+  fi
   if ! rm -rf "$MOVED_ASIDE" 2>/dev/null; then
     echo "leftover=$(tilde "$MOVED_ASIDE")"
     echo "warning: could not fully delete the old copy at $(tilde "$MOVED_ASIDE"). Your data is safe in the linked folder; delete the old copy by hand." >&2
@@ -333,7 +355,8 @@ cmd_apply() {
     move)
       move_data "$target" || return 1
       if ! make_link "$target"; then
-        if mv "$MOVED_ASIDE" "$DATA"; then
+        [[ -d "$DATA" && ! -L "$DATA" ]] && rmdir "$DATA" 2>/dev/null
+        if [[ ! -e "$DATA" && ! -L "$DATA" ]] && mv "$MOVED_ASIDE" "$DATA"; then
           copy_kept_fail "could not create the data link" "$target"
         else
           echo "error: could not create the data link; your data is in $(tilde "$target") and the old copy in $(tilde "$MOVED_ASIDE")." >&2
@@ -341,7 +364,7 @@ cmd_apply() {
         return 1
       fi
       record_configured "$target"
-      remove_moved_aside ;;
+      remove_moved_aside "$target" ;;
     repoint)
       mkdir -p "$target"
       require_outside_repo "$target"
@@ -376,6 +399,10 @@ main() {
 
   if [[ "$status" == true ]]; then cmd_status; return; fi
   if [[ -z "$target" ]]; then usage >&2; return 1; fi
+  if [[ "$target" == *$'\n'* ]]; then
+    echo "error: folder paths containing a newline are not supported" >&2
+    return 1
+  fi
   cmd_apply "$(abspath "$target")" "$dry" "$force"
 }
 
