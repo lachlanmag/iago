@@ -9,7 +9,7 @@
 #   bash scripts/link-data.sh --force <folder>    # on conflict: back up local data/, then link
 #
 # Output: stable key=value lines (parsed by the iago-data-location skill).
-# Exit codes: 0 ok, 1 usage/error, 2 conflict, 3 refused (target inside repo), 4 broken link.
+# Exit codes: 0 ok, 1 usage/error, 2 conflict, 3 refused (target inside or containing the repo), 4 broken link.
 
 set -euo pipefail
 
@@ -20,22 +20,75 @@ usage() {
   sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
 }
 
-# Expand ~ and relative paths; resolve the deepest existing ancestor.
+# Expand ~ and relative paths. Existing directories are resolved physically
+# (symlinks, case on case-insensitive filesystems); the non-existing tail is
+# normalised lexically ('.', '..', repeated and trailing slashes).
 abspath() {
-  local p="$1"
+  local p="$1" base="/" tail="" seg nb
+  local -a parts
   case "$p" in
     "~") p="$HOME" ;;
     "~/"*) p="$HOME/${p#\~/}" ;;
     /*) ;;
     *) p="$PWD/$p" ;;
   esac
-  p="${p%/}"
-  local d="$p" rest=""
-  while [[ ! -d "$d" ]]; do
-    rest="/$(basename "$d")$rest"
+  IFS=/ read -r -a parts <<< "$p"
+  for seg in ${parts[@]+"${parts[@]}"}; do
+    case "$seg" in
+      ""|.) ;;
+      ..)
+        if [[ -n "$tail" ]]; then
+          tail="${tail%/*}"
+        else
+          base="$(cd -P -- "${base%/}/.." 2>/dev/null && pwd -P)" || base="/"
+        fi ;;
+      *)
+        if [[ -z "$tail" && -d "${base%/}/$seg" ]] && nb="$(cd -P -- "${base%/}/$seg" 2>/dev/null && pwd -P)"; then
+          base="$nb"
+        else
+          tail="$tail/$seg"
+        fi ;;
+    esac
+  done
+  if [[ "$base" == / ]]; then
+    echo "${tail:-/}"
+  else
+    echo "$base$tail"
+  fi
+}
+
+# True when $1 is inside the repo, is the repo, or contains the repo.
+# Compares inodes (-ef), so case variants and symlinked paths are caught.
+overlaps_repo() {
+  local t="$1" d
+  [[ "$t" == "$REPO_ROOT" || "$t" == "$REPO_ROOT"/* ]] && return 0
+  d="$t"
+  while :; do
+    [[ -e "$d" && "$d" -ef "$REPO_ROOT" ]] && return 0
+    [[ "$d" == / || -z "$d" ]] && break
     d="$(dirname "$d")"
   done
-  echo "$(cd "$d" && pwd -P)$rest"
+  if [[ -e "$t" ]]; then
+    d="$REPO_ROOT"
+    while :; do
+      [[ "$d" -ef "$t" ]] && return 0
+      [[ "$d" == / || -z "$d" ]] && break
+      d="$(dirname "$d")"
+    done
+  fi
+  return 1
+}
+
+refuse_msg() {
+  echo "error: $(tilde "$1") is inside the Iago repo or contains it; choose a folder outside $(tilde "$REPO_ROOT")" >&2
+}
+
+# Re-check after creating directories, right before copying or deleting.
+require_outside_repo() {
+  if overlaps_repo "$1"; then
+    refuse_msg "$1"
+    exit 3
+  fi
 }
 
 tilde() {
@@ -90,7 +143,7 @@ cmd_status() {
 # Decide what linking to $1 would do. Prints action; never changes anything.
 plan_action() {
   local target="$1" mode local_n target_n
-  if [[ "$target" == "$REPO_ROOT" || "$target" == "$REPO_ROOT"/* ]]; then
+  if overlaps_repo "$target"; then
     echo refuse; return
   fi
   mode="$(data_mode)"
@@ -115,6 +168,8 @@ print_plan() {
   echo "action=$action"
   echo "mode=$(data_mode)"
   echo "target=$(tilde "$target")"
+  # Never count a refused target: it may be a huge parent folder (or /).
+  [[ "$action" == refuse ]] && return 0
   echo "local_files=$(count_files "$DATA")"
   echo "local_kb=$(kb_of "$DATA")"
   echo "target_files=$(count_files "$target")"
@@ -132,7 +187,7 @@ cmd_apply() {
 
   case "$action" in
     refuse)
-      echo "error: target is inside the repo; choose a folder outside $(tilde "$REPO_ROOT")" >&2
+      refuse_msg "$target"
       return 3 ;;
     conflict)
       if [[ "$force" != true ]]; then
@@ -148,6 +203,7 @@ cmd_apply() {
     noop) ;;
     create|link)
       mkdir -p "$target"
+      require_outside_repo "$target"
       # In-repo data/ has no real files here (only placeholders): safe to replace.
       [[ -d "$DATA" && ! -L "$DATA" ]] && rm -rf "$DATA"
       make_link "$target" ;;
@@ -155,6 +211,7 @@ cmd_apply() {
       local before after
       before="$(count_files "$DATA")"
       mkdir -p "$target"
+      require_outside_repo "$target"
       cp -Rp "$DATA/." "$target/"
       after="$(count_files "$target")"
       if [[ "$after" != "$before" ]]; then
@@ -165,9 +222,11 @@ cmd_apply() {
       make_link "$target" ;;
     repoint)
       mkdir -p "$target"
+      require_outside_repo "$target"
       rm "$DATA"
       make_link "$target" ;;
     conflict)
+      require_outside_repo "$target"
       local backup
       backup="$DATA.local-backup-$(date +%Y%m%d-%H%M%S)"
       mv "$DATA" "$backup"

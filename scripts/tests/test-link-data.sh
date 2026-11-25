@@ -150,6 +150,43 @@ check "absolute resume_path flagged" test "$(echo "$out" | field resume_path_por
 printf 'profile:\n  resume_path: resumes/master.md\n' > "$r/data/config.yaml"
 out="$(bash "$r/scripts/verify-workspace.sh" "$r" 2>/dev/null)"
 check "relative resume_path ok" test "$(echo "$out" | field resume_path_portable)" = yes
+# --- section: refuse-overlap ---
+echo "refuse: '..' in a non-existing path segment cannot sneak inside the repo"
+r="$(new_repo refdots)"; seed "$r/data"
+link "$r" "$SANDBOX/nope/../refdots/data/sub" >/dev/null 2>&1; rc=$?
+check "dots: exit 3" test "$rc" = 3
+check "dots: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+check "dots: no data/sub created" test ! -e "$r/data/sub"
+check "dots: files intact" test -f "$r/data/daily-runs/2026-01-01.md"
+link "$r" "$SANDBOX/nope2/./../refdots//x/" >/dev/null 2>&1; rc=$?
+check "dots+slashes: exit 3" test "$rc" = 3
+mkdir -p "$SANDBOX/casecheck"
+if [[ -d "$SANDBOX/CASECHECK" ]]; then
+  echo "refuse: case variant of the repo path (case-insensitive filesystem)"
+  r="$(new_repo refcase)"; seed "$r/data"
+  link "$r" "$SANDBOX/REFCASE/elsewhere" >/dev/null 2>&1; rc=$?
+  check "case: exit 3" test "$rc" = 3
+  check "case: data still a real dir" test -d "$r/data" -a ! -L "$r/data"
+  check "case: nothing created in repo" test ! -e "$r/elsewhere"
+else
+  echo "  skip case-variant test (case-sensitive filesystem)"
+fi
+echo "refuse: folder that contains the repo"
+r="$(new_repo parent/inner)"
+before="$(find "$SANDBOX/parent" | sort)"
+link "$r" "$SANDBOX/parent" >/dev/null 2>&1; rc=$?
+check "parent: exit 3" test "$rc" = 3
+link "$r" "$r/.." >/dev/null 2>&1; rc=$?
+check "'..': exit 3" test "$rc" = 3
+link "$r" "$r" >/dev/null 2>&1; rc=$?
+check "repo itself: exit 3" test "$rc" = 3
+link "$r" / >/dev/null 2>&1; rc=$?
+check "'/': exit 3" test "$rc" = 3
+check "parent: no data link" test ! -L "$r/data"
+check "parent: nothing written" test "$(find "$SANDBOX/parent" | sort)" = "$before"
+bash "$r/scripts/init-data.sh" --data-dir "$SANDBOX/parent" >/dev/null 2>&1; rc=$?
+check "init-data --data-dir parent: fails" test "$rc" != 0
+check "init-data: no config.yaml spewed into parent" test ! -e "$SANDBOX/parent/config.yaml"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
