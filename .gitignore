@@ -1,6 +1,6 @@
 # Local job search data (Resume-Matcher pattern)
-data/*
-!data/.gitkeep
+/data
+/data.local-backup-*/
 
 # OS
 .DS_Store

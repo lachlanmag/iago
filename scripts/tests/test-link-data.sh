@@ -102,6 +102,14 @@ out="$(link "$r" --dry-run "$t")"
 check "action=move" test "$(echo "$out" | field action)" = move
 check "data still a dir" test -d "$r/data" -a ! -L "$r/data"
 check "target not created" test ! -e "$t"
+# --- section: gitignore ---
+echo "gitignore: symlinked data/ never shows in git status"
+r="$(new_repo gitignore)"; seed "$r/data"; link "$r" "$SANDBOX/gi-target" >/dev/null
+check "git status clean" test -z "$(cd "$r" && git status --porcelain)"
+r="$(new_repo gitignore-inrepo)"; seed "$r/data"
+check "in-repo data ignored too" test -z "$(cd "$r" && git status --porcelain)"
+link "$r" --force "$SANDBOX/gi2" >/dev/null 2>&1; seed "$SANDBOX/gi2"; mkdir -p "$r/data.local-backup-x"; echo y > "$r/data.local-backup-x/f"
+check "backup dirs ignored" test -z "$(cd "$r" && git status --porcelain)"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
