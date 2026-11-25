@@ -103,10 +103,10 @@ tilde() {
   esac
 }
 
-# Count real files (ignore Finder/git placeholders).
+# Count real files and symlinks (ignore Finder/git placeholders).
 count_files() {
   [[ -d "$1" ]] || { echo 0; return; }
-  find "$1/" -type f ! -name .DS_Store ! -name .gitkeep | wc -l | tr -d ' '
+  find "$1/" \( -type f -o -type l \) ! -name .DS_Store ! -name .gitkeep | wc -l | tr -d ' '
 }
 
 kb_of() {
@@ -146,6 +146,9 @@ cmd_status() {
     broken|unlinked)
       echo "hint=$(iago_data_hint "$mode" "$REPO_ROOT" "$conf")" >&2
       return 4 ;;
+    other)
+      echo "hint=$(iago_data_hint "$mode" "$REPO_ROOT" "$conf")" >&2
+      return 1 ;;
   esac
 }
 
@@ -232,6 +235,11 @@ move_data() {
 
 cmd_apply() {
   local target="$1" dry="$2" force="$3" action
+  if [[ "$(data_mode)" == other ]]; then
+    echo "mode=other"
+    echo "error: $(iago_data_hint other "$REPO_ROOT")" >&2
+    return 1
+  fi
   action="$(plan_action "$target")"
   print_plan "$action" "$target"
 

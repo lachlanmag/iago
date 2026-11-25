@@ -10,6 +10,7 @@ Requires: pip3 install ruamel.yaml
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from copy import deepcopy
@@ -84,7 +85,7 @@ def main() -> int:
     data_link = root / "data"
     if data_link.is_symlink() and not data_link.exists():
         print(
-            f"data -> {data_link.readlink()} does not exist. Mount or sync that folder, "
+            f"data -> {os.readlink(data_link)} does not exist. Mount or sync that folder, "
             f"or run: bash scripts/link-data.sh <folder>",
             file=sys.stderr,
         )

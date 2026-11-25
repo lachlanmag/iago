@@ -106,15 +106,20 @@ fi
 
 echo "skills_at_repo_root=yes"
 
-# Data folder location (in-repo, linked outside the repo, or broken link).
-bash "$REPO_ROOT/scripts/link-data.sh" --status 2>/dev/null | sed -nE 's/^(mode|target)=/data_\1=/p' || true
-if [[ -L "$REPO_ROOT/data" && ! -d "$REPO_ROOT/data" ]]; then
-  echo "data_hint=Data folder not found. Mount/sync it, or ask: \"change my Iago data folder\"" >&2
-fi
+# Data folder location: reuse link-data.sh --status and the shared hint wording.
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
+data_status="$(bash "$REPO_ROOT/scripts/link-data.sh" --status 2>/dev/null || true)"
+echo "$data_status" | sed -nE 's/^(mode|target|configured)=/data_\1=/p'
+data_mode="$(echo "$data_status" | sed -n 's/^mode=//p')"
+case "$data_mode" in
+  broken|unlinked|other)
+    echo "data_hint=$(iago_data_hint "$data_mode" "$REPO_ROOT" "$(iago_configured_dir "$REPO_ROOT")")" >&2 ;;
+esac
 resume_path="$(sed -n 's/^[[:space:]]*resume_path:[[:space:]]*\([^#]*\).*/\1/p' "$REPO_ROOT/data/config.yaml" 2>/dev/null | head -1 | tr -d "\"' " || true)"
 case "$resume_path" in
-  /*|"~"*) echo "resume_path_portable=no"
-           echo "resume_hint=profile.resume_path is machine-specific; move the resume into data/resumes/ and use a relative path" >&2 ;;
+  /*) echo "resume_path_portable=no"
+      echo "resume_hint=profile.resume_path is machine-specific; move the resume into data/resumes/ and use a relative path" >&2 ;;
   "") ;;
   *) echo "resume_path_portable=yes" ;;
 esac

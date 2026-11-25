@@ -263,6 +263,83 @@ check "placeholder dir: run-daily-search exit 4" test "$rc" = 4
 out="$(link "$r" "$t" 2>/dev/null)"; rc=$?
 check "placeholder dir: action=link" test "$(echo "$out" | field action)" = link
 check "placeholder dir: relinked" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
+# --- section: minor ---
+echo "data is a regular file: mode=other"
+r="$(new_repo other)"; echo "precious" > "$r/data"; t="$SANDBOX/other-target"
+out="$(link "$r" --status 2>/dev/null)"; rc=$?
+check "other: status mode=other" test "$(echo "$out" | field mode)" = other
+check "other: status exit 1" test "$rc" = 1
+link "$r" "$t" >/dev/null 2>&1; rc=$?
+check "other: apply exit 1" test "$rc" = 1
+check "other: file untouched" test -f "$r/data" -a "$(cat "$r/data")" = precious
+check "other: target not created" test ! -e "$t"
+echo "data/ with only symlinks is not empty"
+r="$(new_repo symonly)"; mkdir -p "$r/data"; echo hi > "$SANDBOX/symonly-real.md"; ln -s "$SANDBOX/symonly-real.md" "$r/data/resume.md"
+t="$SANDBOX/symonly-target"
+check "symlink-only: action=move" test "$(link "$r" --dry-run "$t" | field action)" = move
+link "$r" "$t" >/dev/null 2>&1; rc=$?
+check "symlink-only: exit 0" test "$rc" = 0
+check "symlink-only: symlink moved" test -L "$t/resume.md"
+echo "verify-workspace: ~ resume_path is portable, hints match the guard"
+r="$(new_repo verify2)"; mkdir -p "$r/.cursor/skills/iago-setup"; touch "$r/.cursor/skills/iago-setup/SKILL.md"
+t="$SANDBOX/verify2-target"; link "$r" "$t" >/dev/null
+printf 'profile:\n  resume_path: ~/x.md\n' > "$r/data/config.yaml"
+out="$(bash "$r/scripts/verify-workspace.sh" "$r" 2>/dev/null)"
+check "~ resume_path portable" test "$(echo "$out" | field resume_path_portable)" = yes
+rm "$r/data"
+out="$(bash "$r/scripts/verify-workspace.sh" "$r" 2>"$SANDBOX/v2.err")"
+check "verify: data_mode=unlinked" test "$(echo "$out" | field data_mode)" = unlinked
+check "verify: data_configured reported" test "$(echo "$out" | field data_configured)" = "$t"
+guard_msg="$(bash "$r/scripts/reconcile-config.sh" 2>&1 >/dev/null | sed -n 's/^error: //p')"
+check "verify: unlinked hint matches guard wording" test "$(field data_hint < "$SANDBOX/v2.err")" = "$guard_msg"
+ln -s "$SANDBOX/verify2-gone" "$r/data"; git -C "$r" config --local --unset iago.dataDir
+bash "$r/scripts/verify-workspace.sh" "$r" >/dev/null 2>"$SANDBOX/v2.err"
+guard_msg="$(bash "$r/scripts/reconcile-config.sh" 2>&1 >/dev/null | sed -n 's/^error: //p')"
+check "verify: broken hint matches guard wording" test "$(field data_hint < "$SANDBOX/v2.err")" = "$guard_msg"
+echo "init-data: --data-dir and --keep-in-repo together"
+r="$(new_repo init-both)"
+bash "$r/scripts/init-data.sh" --data-dir "$SANDBOX/init-both-target" --keep-in-repo >/dev/null 2>&1; rc=$?
+check "both flags: exit 1" test "$rc" = 1
+check "both flags: no data/" test ! -e "$r/data" -a ! -L "$r/data"
+check "both flags: no target" test ! -e "$SANDBOX/init-both-target"
+if python3 -c 'import ruamel.yaml' 2>/dev/null; then
+  echo "reconcile-config.py: broken link check (python directly)"
+  r="$(new_repo pyguard)"; ln -s "$SANDBOX/pyguard-gone" "$r/data"
+  err="$(python3 "$r/scripts/reconcile-config.py" 2>&1)"; rc=$?
+  check "python: exit 4" test "$rc" = 4
+  check "python: names the missing folder" grep -q "pyguard-gone" <<< "$err"
+else
+  echo "  skip python guard test (ruamel.yaml not installed)"
+fi
+# --- section: spec-gaps ---
+snap() { { find "$@" 2>/dev/null | sort; readlink "$1/data"; git -C "$1" config --local --get iago.dataDir; } 2>/dev/null; }
+echo "status exits 0 for healthy modes"
+r="$(new_repo st0)"
+link "$r" --status >/dev/null; check "missing: exit 0" test "$?" = 0
+mkdir "$r/data"; seed "$r/data"
+link "$r" --status >/dev/null; check "in-repo: exit 0" test "$?" = 0
+link "$r" "$SANDBOX/st0-target" >/dev/null
+link "$r" --status >/dev/null; check "linked: exit 0" test "$?" = 0
+echo "dry-run reports the action and changes nothing"
+dry_case() { # name repo target expected_action expected_rc
+  local before out rc
+  before="$(snap "$2" "$3")"
+  out="$(link "$2" --dry-run "$3" 2>/dev/null)"; rc=$?
+  check "dry $1: action=$4" test "$(echo "$out" | field action)" = "$4"
+  check "dry $1: exit $5" test "$rc" = "$5"
+  check "dry $1: nothing changed" test "$(snap "$2" "$3")" = "$before"
+}
+r="$(new_repo dry-link)"; t="$SANDBOX/dry-link-t"; seed "$t"; dry_case link "$r" "$t" link 0
+r="$(new_repo dry-create)"; dry_case create "$r" "$SANDBOX/dry-create-t" create 0
+r="$(new_repo dry-repoint)"; link "$r" "$SANDBOX/dry-rp-a" >/dev/null; dry_case repoint "$r" "$SANDBOX/dry-rp-b" repoint 0
+r="$(new_repo dry-noop)"; link "$r" "$SANDBOX/dry-noop-a" >/dev/null; dry_case noop "$r" "$SANDBOX/dry-noop-a" noop 0
+r="$(new_repo dry-refuse)"; seed "$r/data"; dry_case refuse "$r" "$r/inside" refuse 3
+r="$(new_repo dry-conflict)"; seed "$r/data"; t="$SANDBOX/dry-conflict-t"; seed "$t"; dry_case conflict "$r" "$t" conflict 2
+echo "move preserves content exactly"
+r="$(new_repo move-exact)"; seed "$r/data"; mkdir -p "$r/data/jds/deep"; printf 'line1\nline2\n' > "$r/data/jds/deep/x.md"; touch "$r/data/.hidden"
+cp -Rp "$r/data" "$SANDBOX/move-exact-copy"; t="$SANDBOX/move-exact-target"
+link "$r" "$t" >/dev/null
+check "move: content identical" diff -r "$SANDBOX/move-exact-copy" "$t"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"

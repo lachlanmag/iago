@@ -30,7 +30,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-iago_require_data_dir "$REPO_ROOT"
+if [[ -n "$data_dir" && "$keep_in_repo" == true ]]; then
+  echo "error: use either --data-dir or --keep-in-repo, not both" >&2
+  exit 1
+fi
+
+iago_require_data_dir "$REPO_ROOT" || exit $?
 
 if [[ -n "$data_dir" ]]; then
   bash "$REPO_ROOT/scripts/link-data.sh" "$data_dir"
