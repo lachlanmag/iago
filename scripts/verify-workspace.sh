@@ -106,6 +106,19 @@ fi
 
 echo "skills_at_repo_root=yes"
 
+# Data folder location (in-repo, linked outside the repo, or broken link).
+bash "$REPO_ROOT/scripts/link-data.sh" --status 2>/dev/null | sed -nE 's/^(mode|target)=/data_\1=/p' || true
+if [[ -L "$REPO_ROOT/data" && ! -d "$REPO_ROOT/data" ]]; then
+  echo "data_hint=Data folder not found. Mount/sync it, or ask: \"change my Iago data folder\"" >&2
+fi
+resume_path="$(sed -n 's/^[[:space:]]*resume_path:[[:space:]]*\([^#]*\).*/\1/p' "$REPO_ROOT/data/config.yaml" 2>/dev/null | head -1 | tr -d "\"' " || true)"
+case "$resume_path" in
+  /*|"~"*) echo "resume_path_portable=no"
+           echo "resume_hint=profile.resume_path is machine-specific; move the resume into data/resumes/ and use a relative path" >&2 ;;
+  "") ;;
+  *) echo "resume_path_portable=yes" ;;
+esac
+
 if [[ "$WORKSPACE_ROOT" == "$REPO_ROOT" ]]; then
   echo "workspace_matches_repo=yes"
   exit 0

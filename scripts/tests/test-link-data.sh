@@ -139,6 +139,17 @@ check "--keep-in-repo has config" test -f "$r/data/config.yaml"
 r="$(new_repo init-noninteractive)"
 bash "$r/scripts/init-data.sh" </dev/null >/dev/null 2>&1
 check "no tty defaults to in-repo" test -d "$r/data" -a ! -L "$r/data"
+# --- section: verify-workspace ---
+echo "verify-workspace reports data location and resume_path portability"
+r="$(new_repo verify)"; mkdir -p "$r/.cursor/skills/iago-setup"; touch "$r/.cursor/skills/iago-setup/SKILL.md"
+link "$r" "$SANDBOX/verify-target" >/dev/null
+printf 'profile:\n  resume_path: /Users/x/r.md\n' > "$r/data/config.yaml"
+out="$(bash "$r/scripts/verify-workspace.sh" "$r" 2>/dev/null)"
+check "data_mode=linked" test "$(echo "$out" | field data_mode)" = linked
+check "absolute resume_path flagged" test "$(echo "$out" | field resume_path_portable)" = no
+printf 'profile:\n  resume_path: resumes/master.md\n' > "$r/data/config.yaml"
+out="$(bash "$r/scripts/verify-workspace.sh" "$r" 2>/dev/null)"
+check "relative resume_path ok" test "$(echo "$out" | field resume_path_portable)" = yes
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
