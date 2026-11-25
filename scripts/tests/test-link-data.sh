@@ -420,6 +420,16 @@ mkdir -p "$mono/Iago2"; cp -R "$SRC_ROOT/scripts" "$SRC_ROOT/examples" "$mono/Ia
 check "enclosing repo: status ignores parent config" test "$(link "$mono/Iago2" --status 2>/dev/null | field mode)" = in-repo
 bash "$mono/Iago2/scripts/init-data.sh" </dev/null >/dev/null 2>&1; rc=$?
 check "enclosing repo: guard ignores parent config" test "$rc" = 0
+# --- section: upgrade ---
+echo "upgrade-iago-version: apply mode with no reconcile args (bash 3.2 set -u)"
+r="$(new_repo upgrade)"
+for s in reconcile-config verify-workspace install-skills; do printf '#!/bin/bash\necho "stub_%s $*"\n' "$s" > "$r/scripts/$s.sh"; done
+(cd "$r" && git add -A && git -c user.email=t@t -c user.name=t commit -qm stubs && git clone -q --bare . "$SANDBOX/upgrade-origin.git" && git remote add origin "$SANDBOX/upgrade-origin.git")
+shim "$SANDBOX/shim-py" python3 'exit 0'
+out="$(PATH="$SANDBOX/shim-py:$PATH" CURSOR_WORKSPACE="$r" "$BASH" "$r/scripts/upgrade-iago-version.sh" 2>&1)"; rc=$?
+check "upgrade apply: exit 0" test "$rc" = 0
+[[ "$rc" == 0 ]] || echo "$out" | tail -2 | sed "s/^/    /"
+check "upgrade apply: reconcile called" grep -q "^stub_reconcile-config $" <<< "$out"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"
