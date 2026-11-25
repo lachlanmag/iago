@@ -18,6 +18,7 @@
 |------|---------|
 | `$REPO_ROOT/scripts/link-data.sh` | Status, dry-run, and link/move (only tool that changes the data location) |
 | `$REPO_ROOT/data` | Real folder (in-repo) or per-machine symlink to the chosen folder; gitignored either way |
+| git config `iago.dataDir` (local to this clone) | The folder this computer uses, recorded by `link-data.sh`; lets scripts notice when a git checkout removed the `data` link |
 
 ## Script contract
 
@@ -25,17 +26,18 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 
 | Command | Output keys |
 |---------|-------------|
-| `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`), `repo`, `target`, `files`, `kb` |
+| `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`, `unlinked`, `other`), `repo`, `configured` (folder this computer is set to use, `~` form; empty if never linked), `target`, `files`, `kb` |
 | `bash "$REPO_ROOT/scripts/link-data.sh" --dry-run "<folder>"` | `action`, `mode`, `target`, `local_files`, `local_kb`, `target_files`, `target_kb` |
-| `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used) |
+| `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used). Records `<folder>` as this computer's configured folder. |
+| Either, when `data` is a file (`mode=other`) | Only `mode=other`; exits 1 without changing anything |
 
 | Exit | Meaning |
 |------|---------|
 | 0 | OK |
-| 1 | Usage error, or copy verification failed (nothing removed) |
+| 1 | Usage error; `data` is a file, not a folder (`mode=other`); or the move's copy/verification failed (nothing removed from `data/`; a partial copy may remain at `<folder>.iago-partial.<pid>`, named in the error) |
 | 2 | Conflict: both `data/` and the folder have files; nothing changed |
-| 3 | Refused: folder is inside the Iago repo |
-| 4 | `--status` only: `data` points at a folder that does not exist |
+| 3 | Refused: folder is inside the Iago repo, or contains it (e.g. a parent folder or `~`) |
+| 4 | `--status` only: `data` points at a folder that does not exist (`broken`), or `data` is not linked to the configured folder (`unlinked`, e.g. after a git checkout of an old Iago version) |
 
 | `action` | Meaning to tell the user |
 |----------|--------------------------|
@@ -45,7 +47,7 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 | `repoint` | "Switch from `<old>` to `<folder>`. Nothing is moved; the old folder is left as is." If `target_files=0`, warn: "the new folder is empty, so Iago will look like a fresh install." |
 | `noop` | "Already using `<folder>`." |
 | `conflict` | See Conflict below. |
-| `refuse` | "That folder is inside the Iago repo; pick one outside it." |
+| `refuse` | "That folder is inside the Iago repo, or contains it; pick a separate folder outside it." |
 
 ## Workflow
 
@@ -63,6 +65,8 @@ Run `--status` and say, in one line:
 | `in-repo` | "Your data is inside the Iago repo (`data/`, gitignored), N files." |
 | `linked` | "Your data is in `<target>`, N files." |
 | `broken` | "Iago is set to use `<target>`, but that folder can't be found (sync drive not mounted, or folder moved/renamed)." |
+| `unlinked` | "This computer is set to use `<configured>`, but Iago's `data` link to it is gone (usually after switching to an old Iago version with git)." Offer **Re-link to `<configured>`** (run `link-data.sh "<configured>"` after a dry-run) or **Pick another folder**. Iago scripts stop until this is fixed. |
+| `other` | "There is a file called `data` in the Iago repo where the data folder should be." Ask the user to rename or move it; change nothing. |
 
 If the user only asked where the data is, stop here.
 

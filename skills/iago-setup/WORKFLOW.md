@@ -62,6 +62,8 @@ Decide where this computer keeps Iago data **before** any data file is created. 
    | `in-repo` with files | Say where the data is and offer **Move to a folder outside the repo** (run the iago-data-location flow now) or **Keep as is**. Never force a move. |
    | `linked` | Say "Using `<target>`." and continue without asking. |
    | `broken` | Stop setup. Offer **Pick a different folder** or **I'll reconnect the sync folder**. Never initialize an empty folder at the missing path. |
+   | `unlinked` | Stop setup. Tell the user which folder Iago expects (`configured=`) and offer **Re-link to it** or **Pick another folder** (iago-data-location flow). Never run `init-data.sh` until `--status` reports `linked` or `in-repo`. |
+   | `other` | Stop setup. A file named `data` is in the way; ask the user to move it. |
 
 3. **Second computer:** if the chosen folder already contains `config.yaml`, say "Found existing Iago data (last updated <mtime of applications.yaml>). Linking to it; nothing will be overwritten." In step 1, default to **Update config**.
 4. Typed paths may use `~` or be relative; show the resolved path from the dry-run `target=` line back to the user before confirming.

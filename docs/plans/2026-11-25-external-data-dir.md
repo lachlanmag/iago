@@ -1062,3 +1062,19 @@ Plan saved to `docs/plans/2026-11-25-external-data-dir.md`. Options:
 
 1. **Subagent-driven:** one fresh subagent per task, with spec and quality review between tasks.
 2. **Manual:** you run the tasks yourself.
+
+---
+
+## Post-review fixes
+
+1. Inside-repo refusal: `abspath` lexically normalises the non-existing tail (`.`, `..`, repeated/trailing `/`) and the check compares inodes (`-ef`) of every existing ancestor, so `nope/../repo/...` and case variants are refused; re-checked after `mkdir -p`, before any copy/delete.
+2. Targets that contain the repo (parent, `~`, `..`, `/`) are refused with exit 3; refused targets are never counted.
+3. `link-data.sh` records the folder in `git config --local iago.dataDir`; the guard and `--status` report `unlinked` (exit 4) when `data` is not linked to it (e.g. after checking out an old commit), with a `configured=` status key; re-running `link-data.sh <configured>` recovers.
+4. Moves copy into `<target>.iago-partial.<pid>`, verify with `diff -rq` plus file count, move into place, and only then remove `data/`; failures remove nothing and name the staging folder.
+5. A regular file named `data` is reported as `mode=other` (exit 1) and never overwritten.
+6. `count_files` counts symlinks, so a `data/` holding only symlinks is moved, not deleted.
+7. `verify-workspace.sh` treats `~/…` `resume_path` as portable; only absolute paths are flagged.
+8. `verify-workspace.sh` reuses `link-data.sh --status` and the shared hint wording in `scripts/lib/data-dir.sh`; `init-data.sh` calls the guard as `|| exit $?`.
+9. `init-data.sh` rejects `--data-dir` together with `--keep-in-repo` (exit 1).
+10. `reconcile-config.py` uses `os.readlink` (works before Python 3.9).
+11. Tests added for `--status` exit 0 (missing/in-repo/linked), dry-run of every action changing nothing (conflict exits 2), and byte-identical moves.

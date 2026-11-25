@@ -374,7 +374,7 @@ Notes:
 - If the synced folder is missing (drive not mounted), Iago scripts stop with a message instead of starting an empty data folder.
 - Store your resume in the data folder (e.g. `resumes/master-resume.md`) and use that relative `profile.resume_path` so it works on every computer.
 - macOS and Linux. On Windows, run Iago under WSL.
-- Checking out an old Iago version (before this feature) while `data` is a link may fail: git will not write `data/.gitkeep` through a symlink.
+- Iago remembers this computer's folder (in the clone's git config, `iago.dataDir`). If a git checkout (for example of an old Iago version) removes the `data` link, scripts stop with a fix-it message instead of starting an empty `data/`. Re-run `bash scripts/link-data.sh <folder>` or ask chat to fix the Iago data folder.
 
 ## Roadmap
 
