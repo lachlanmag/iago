@@ -464,6 +464,20 @@ r="$(new_repo gitkeep)"; seed "$r/data"; t="$SANDBOX/gitkeep-target"; mkdir -p "
 link "$r" "$t" >/dev/null 2>&1
 check "non-empty .gitkeep kept" test "$(cat "$t/.gitkeep" 2>/dev/null)" = notes
 check "data/ intact" test -f "$r/data/config.yaml"
+# --- section: missing-target ---
+echo "broken link + same missing folder is an error, not a noop"
+r="$(new_repo mt)"; t="$SANDBOX/mt-gone"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm -rf "$t"
+before="$(snap "$r" "$t")"
+out="$(link "$r" --dry-run "$t" 2>/dev/null)"; rc=$?
+check "missing target dry: action=missing-target" test "$(echo "$out" | field action)" = missing-target
+check "missing target dry: exit 4" test "$rc" = 4
+out="$(link "$r" "$t" 2>"$SANDBOX/mt.err")"; rc=$?
+check "missing target: action=missing-target" test "$(echo "$out" | field action)" = missing-target
+check "missing target: exit 4" test "$rc" = 4
+check "missing target: no result=ok" test -z "$(echo "$out" | field result)"
+check "missing target: error says still does not exist" grep -q "still does not exist" "$SANDBOX/mt.err"
+check "missing target: nothing changed" test "$(snap "$r" "$t")" = "$before"
+check "missing target: folder not created" test ! -e "$t"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"

@@ -46,6 +46,7 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 | `create` | "Start a new, empty data folder at `<folder>`." |
 | `repoint` | "Switch from `<old>` to `<folder>`. Nothing is moved; the old folder is left as is." If `target_files=0`, warn: "the new folder is empty, so Iago will look like a fresh install." |
 | `noop` | "Already using `<folder>`." |
+| `missing-target` | Exit 4, nothing changed: `data` already points at `<folder>`, but that folder still does not exist. "`<folder>` still can't be found: reconnect or mount it (sync drive, network share), or choose a different folder." Never create it without asking. |
 | `conflict` | See Conflict below. |
 | `refuse` | "That folder is inside the Iago repo, or contains it; pick a separate folder outside it." |
 

@@ -9,7 +9,8 @@
 #   bash scripts/link-data.sh --force <folder>    # on conflict: back up local data/, then link
 #
 # Output: stable key=value lines (parsed by the iago-data-location skill).
-# Exit: 0 ok, 1 error, 2 conflict, 3 refused (inside/contains repo), 4 broken/unlinked.
+# Exit: 0 ok, 1 error, 2 conflict, 3 refused (inside/contains repo),
+#       4 data folder missing (broken link, unlinked, or target still missing).
 
 set -euo pipefail
 
@@ -166,8 +167,10 @@ plan_action() {
   target_n="$(count_files "$target")"
   case "$mode" in
     linked|broken)
-      if [[ "$(readlink "$DATA")" == "$target" ]] || [[ -e "$target" && "$DATA" -ef "$target" ]]; then
+      if [[ -d "$target" ]] && { [[ "$(readlink "$DATA")" == "$target" ]] || [[ "$DATA" -ef "$target" ]]; }; then
         echo noop
+      elif [[ "$mode" == broken && "$(readlink "$DATA")" == "$target" ]]; then
+        echo missing-target
       else
         echo repoint
       fi ;;
@@ -335,6 +338,9 @@ cmd_apply() {
         echo "hint=Pick which copy to keep. --force backs up data/ to data.local-backup-<timestamp>/ and links to the target." >&2
         return 2
       fi ;;
+    missing-target)
+      echo "error: the folder $(tilde "$target") still does not exist: reconnect/mount it, or choose a different folder" >&2
+      return 4 ;;
   esac
 
   [[ "$dry" == true ]] && return 0
