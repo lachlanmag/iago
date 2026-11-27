@@ -82,6 +82,8 @@ def main() -> int:
         print(f"Missing example config: {args.example}", file=sys.stderr)
         return 1
 
+    # Fallback only, for running this .py directly: reconcile-config.sh runs the
+    # full guard in scripts/lib/data-dir.sh (broken and unlinked) first.
     data_link = root / "data"
     if data_link.is_symlink() and not data_link.exists():
         print(
