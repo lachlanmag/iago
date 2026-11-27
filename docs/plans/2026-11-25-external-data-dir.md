@@ -1,5 +1,7 @@
 # External Data Folder Implementation Plan
 
+> Historical plan. Code snippets below are superseded by the scripts in scripts/; see Post-review fixes.
+
 > **For implementer:** Use TDD throughout. Write the failing test first, watch it fail, then implement. This repo has no unit-test harness (issue #19), so tests are a sandboxed bash script, `scripts/tests/test-link-data.sh`, that never touches the real `data/` or `$HOME`. Each task adds one section to it.
 
 **Goal:** Let each machine point Iago's `data/` at a folder outside the repo (synced by any tool), set via setup, a chat skill, or one script, so personal data can never reach git.
@@ -1033,8 +1035,8 @@ In "## Repository Layout": add `    iago-data-location/` under `skills/`, `.clau
 1. `bash scripts/tests/test-link-data.sh`. Expected: `passed=47 failed=0`.
 2. `bash -n scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh && python3 -m py_compile scripts/reconcile-config.py && echo syntax-ok`. Expected: `syntax-ok`.
 3. If available: `shellcheck scripts/link-data.sh scripts/lib/data-dir.sh scripts/init-data.sh scripts/tests/test-link-data.sh`.
-4. `bash scripts/verify-workspace.sh "$PWD"`. Expected: `data_mode=in-repo`, plus `resume_path_portable=no` on this machine (absolute path today).
-5. `git status --short`. Expected: nothing under `data/`, and only the two pre-existing untracked `.hermes/skills/iago-daily/…` entries.
+4. `bash scripts/verify-workspace.sh "$PWD"`. Expected: `data_mode=in-repo`, plus `resume_path_portable=no` if `profile.resume_path` is absolute.
+5. `git status --short`. Expected: nothing under `data/`.
 6. **Manual, per platform (Cursor, Claude Code, Hermes)** against a scratch clone (`git clone . /tmp/iago-scratch`):
    - "Where is my Iago data?" reports `missing` or in-repo correctly.
    - "Move my Iago data to /tmp/iago-scratch-data" shows a preview, asks, links, and confirms.
@@ -1044,11 +1046,11 @@ In "## Repository Layout": add `    iago-data-location/` under `skills/`, `.clau
 
 ---
 
-### Task 11 (user, after merge): migrate this machine
+### Task 11 (user, after merge): migrate an existing install
 
 Not part of the branch. Do this once the feature is merged:
 
-1. Move the repo out of the synced Obsidian folder, e.g. `~/git-repos/iago` (a fresh `git clone` is cleanest).
+1. If the repo itself sits inside a synced folder, move it out, e.g. `~/git-repos/iago` (a fresh `git clone` is cleanest).
 2. In chat: "Change my Iago data folder", then pick the synced folder (e.g. a Nextcloud folder). If you're doing this from the old checkout, its real `data/` is moved there.
 3. Change `profile.resume_path` to a data-relative path, or rely on `master_resume_source: api`.
 4. Optional cleanup in the data folder: `__pycache__/`, `_*.py`, `*.bak.*`, `* (conflicted copy *)*`.
@@ -1095,3 +1097,16 @@ Plan saved to `docs/plans/2026-11-25-external-data-dir.md`. Options:
 23. Folder paths containing a newline are refused (exit 1); `abspath` would otherwise truncate them.
 24. `make_link` confirms `data` is a link to the target; if `data/` was re-created as a real folder, it removes the nested link, fails, and the move rolls back (an empty re-created `data/` is removed first).
 25. Placeholder cleanup only deletes zero-byte `.gitkeep` files.
+
+### PR review fixes
+
+26. (W1) `broken` link plus the same, still-missing folder is `action=missing-target` with exit 4 (dry-run too), not a `noop` that printed `result=ok`.
+27. (W2) `link-data.sh --unlink [--dry-run]` moves data back into the repo: copies the linked folder into `data.iago-partial.<pid>` (gitignored), verifies it (`diff -rq` + counts + no newly dangling links), replaces the link, verifies again and unsets `iago.dataDir`; the external folder is never changed. On failure the link and config stay and the partial copy is named (exit 1). `unlinked` with a real `data/` is `action=adopt` (only unsets the config); `missing` unsets the config and suggests `init-data.sh --keep-in-repo`; `broken` exits 4. The `unlinked` hint mentions `--unlink`; the skill offers **Move back into the repo**.
+28. (W3) Exit 4 documented as "data folder not reachable" for `--status`, `missing-target`, `--unlink` on `broken`, and every script guarded by `lib/data-dir.sh`.
+29. (W4) iago-data-location step 5 skips applying for setup when `mode=missing` or (`in-repo` and `files=0`), matching setup step 0b.
+30. (W5) Every reader of `profile.resume_path` (interview-prep, setup, headless prompt, README) notes that relative paths are under `data/`.
+31. (S1, S2) Setup step 1 flag rule simplified (`--keep-in-repo` iff `--status` says `in-repo`, or `missing` + Keep in repo; otherwise `--data-dir`); validation points at resume-feedback's resolution rule.
+32. (S3) `repoint` says up front it moves nothing and offers to copy the old folder's contents into an empty new one (`cp -Rp` then `diff -rq`).
+33. (S4, S5) Single `iago_record_configured` call per apply; `iago_tilde` lives in `lib/data-dir.sh` and hints print `~/` paths.
+34. (S6) `reconcile-config.py`'s guard is commented as a fallback for running the `.py` directly.
+35. (S7, S8) Machine-specific notes generalised; this banner added; README lists `iago-data-location` under Core Workflows and What Iago handles; ROADMAP skills table lists it.

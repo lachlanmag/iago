@@ -13,6 +13,7 @@ Dual-platform skill layout (Cursor + Claude Code) shipped via [#33](https://gith
 | `iago-daily` | **Shipped** | n/a | Daily search, dedup, QA gate, fit scoring, tracker updates, daily report |
 | `iago-pipeline-review` | **Shipped** | n/a | Triage open pipeline, re-verify listings, rank and recommend shortlist/apply priorities |
 | `iago-setup` | **Shipped** | [#1](https://github.com/lachlanmag/iago/issues/1) | Conversational onboarding; writes gitignored `data/` YAML |
+| `iago-data-location` | **Shipped** | [#46](https://github.com/lachlanmag/iago/pull/46) | Show or change where `data/` lives per machine (in repo, or a synced folder outside it); move back with `--unlink` |
 | `update-application` | **Shipped** | [#5](https://github.com/lachlanmag/iago/issues/5) | Pipeline status updates; chains research on shortlist and prep on apply |
 | `company-research` | **Shipped** | [#6](https://github.com/lachlanmag/iago/issues/6) | Role brief from company site + JD (auto on shortlist) |
 | `interview-prep` | **Shipped** | [#7](https://github.com/lachlanmag/iago/issues/7) | Talking points from JD + resume (auto on apply) |

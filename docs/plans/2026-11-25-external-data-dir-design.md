@@ -129,7 +129,7 @@ The setup flow and the `iago-data-location` skill share the same steps (status �
 ### 8. Docs
 
 - README: in Quick start, after cloning, the first prompt is now "choose your data folder". Add a new section, "Storing data outside the repo / syncing between machines", covering choosing a folder in setup or later with `iago-data-location` or `link-data.sh`, syncing with any tool, never syncing the repo's `.git` through a file-sync tool, and WSL on Windows.
-- Recommend keeping the repo itself out of synced folders (for example `~/git-repos/iago`). The current checkout under the synced Obsidian folder is already producing `(conflicted copy …)` files.
+- Recommend keeping the repo itself out of synced folders (for example `~/git-repos/iago`). Syncing a git checkout tends to produce `(conflicted copy …)` files and corrupt repos.
 
 ### 9. `iago-data-location` skill (new)
 
@@ -193,10 +193,10 @@ Plus a unit test for `resume_path` resolution (relative, `~`, absolute).
 
 Manual check: in each platform, ask "where is my Iago data?" and "move my Iago data to <tmp folder>" against a scratch clone. Then run "Set up job search" on a fresh scratch clone, twice: once picking an empty folder, and once picking the folder from the first run (second-machine path → offers Update config, not Fresh setup).
 
-## Manual migration (this machine)
+## Migrating an existing install
 
-1. Move the repo out of the synced folder (`~/git-repos/iago`), or exclude it from sync.
-2. `bash scripts/link-data.sh ~/<sync-folder>/iago-data`
+1. If the repo itself sits inside a synced folder, move it out (e.g. a fresh `git clone` into `~/git-repos/iago`), or exclude it from sync.
+2. `bash scripts/link-data.sh ~/<sync-folder>/iago-data` (or ask chat: "Change my Iago data folder")
 3. Change `profile.resume_path` to a data-relative path (or rely on `master_resume_source: api`).
 4. Optionally delete clutter: `data/__pycache__`, `data/_*.py`, `*.bak.*`, `(conflicted copy …)`.
 5. On each other machine: clone the repo, then `bash scripts/link-data.sh <that machine's folder>`.

@@ -158,6 +158,7 @@ In Hermes desktop, open or switch to a Project for the Iago clone so skills and 
 
 - Guided first-time setup (`iago-setup`)
 - One-chat version upgrade (`iago-upgrade-version`)
+- Choosing where data lives on each computer, including a synced folder outside the repo (`iago-data-location`)
 - Daily job search and deduplication
 - Listing freshness checks
 - Fit scoring and prioritization
@@ -184,6 +185,12 @@ In Hermes desktop, open or switch to a Project for the Iago clone so skills and 
 > Upgrade Iago version
 
 Trigger phrases: upgrade Iago version, upgrade version, get latest Iago, `/iago-upgrade-version`.
+
+### Data location
+
+> Where is my Iago data?
+
+Shows where data lives on this computer and can move it to a folder outside the repo (or back). Trigger phrases: "Where is my Iago data?", "Change my Iago data folder", `/iago-data-location`. See [Storing data outside the repo](#storing-data-outside-the-repo).
 
 ### Daily search
 
