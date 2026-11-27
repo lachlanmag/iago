@@ -1,12 +1,52 @@
 #!/usr/bin/env bash
 # Copy example templates into data/ for first-time setup.
 # Safe to re-run: skips files that already exist.
+#
+# Usage:
+#   bash scripts/init-data.sh                     # asks where to store data if data/ is missing
+#   bash scripts/init-data.sh --data-dir <folder> # store data outside the repo (see link-data.sh)
+#   bash scripts/init-data.sh --keep-in-repo      # plain gitignored data/ inside the repo
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXAMPLES="$REPO_ROOT/examples"
 DATA="$REPO_ROOT/data"
+
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
+
+data_dir=""
+keep_in_repo=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --data-dir)
+      data_dir="${2:-}"
+      [[ -n "$data_dir" ]] || { echo "error: --data-dir requires a folder" >&2; exit 1; }
+      shift 2 ;;
+    --keep-in-repo) keep_in_repo=true; shift ;;
+    -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "error: unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
+if [[ -n "$data_dir" && "$keep_in_repo" == true ]]; then
+  echo "error: use either --data-dir or --keep-in-repo, not both" >&2
+  exit 1
+fi
+
+iago_require_data_dir "$REPO_ROOT" || exit $?
+
+if [[ -n "$data_dir" ]]; then
+  bash "$REPO_ROOT/scripts/link-data.sh" "$data_dir"
+elif [[ ! -e "$DATA" && "$keep_in_repo" != true && -t 0 ]]; then
+  echo "Where should Iago store your job search data?"
+  echo "  Pick a folder your sync tool (Nextcloud, Google Drive, Syncthing...) syncs to use Iago on several computers."
+  read -r -p "Folder path (blank = keep inside this repo): " data_dir
+  if [[ -n "$data_dir" ]]; then
+    bash "$REPO_ROOT/scripts/link-data.sh" "$data_dir"
+  fi
+fi
 
 mkdir -p "$DATA/daily-runs" "$DATA/pipeline-reviews" "$DATA/jds" "$DATA/company-research" "$DATA/interview-prep" "$DATA/resume-feedback" "$DATA/logs"
 

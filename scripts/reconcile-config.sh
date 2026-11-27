@@ -11,4 +11,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
+iago_require_data_dir "$REPO_ROOT" || exit $?
 exec python3 "$REPO_ROOT/scripts/reconcile-config.py" "$@"

@@ -35,6 +35,9 @@ done
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="$REPO_ROOT/data"
+# shellcheck source=lib/data-dir.sh
+source "$REPO_ROOT/scripts/lib/data-dir.sh"
+iago_require_data_dir "$REPO_ROOT" || exit $?
 LOG_DIR="$DATA_DIR/logs"
 mkdir -p "$LOG_DIR" "$DATA_DIR/daily-runs"
 
@@ -104,7 +107,7 @@ Run date (${IAGO_TZ}): ${RUN_DATE}
 Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks: not the system UTC date.
 
 Run the full daily workflow:
-1. Load data/config.yaml, data/applications.yaml, data/seen-jobs.yaml, and profile.resume_path from config
+1. Load data/config.yaml, data/applications.yaml, data/seen-jobs.yaml, and profile.resume_path from config (relative paths are under data/)
 2. Search all sources in config search_sources.order (skip excluded_sources)
 3. For EVERY candidate during search: apply listing_freshness at intake: skip expired roles immediately
 4. Dedup every intake-passing candidate per config deduplication rules: canonical URL only

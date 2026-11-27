@@ -1,10 +1,10 @@
 ---
 name: iago-setup
 description: >-
-  Guided job search onboarding that initializes gitignored data/ files and
-  writes config.yaml from conversation. Use when the user says set up job
-  search, configure job search, job search onboarding, first time setup,
-  initialize job search, help me configure iago, or runs /iago-setup.
+  Guided job search onboarding that picks the data folder, initializes data/
+  files, and writes config.yaml from conversation. Use when the user says set
+  up job search, configure job search, job search onboarding, first time
+  setup, initialize job search, help me configure iago, or runs /iago-setup.
 ---
 
 # Iago setup (Cursor)

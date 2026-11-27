@@ -16,7 +16,7 @@
 | `$REPO_ROOT/data/applications.yaml` | Tracker: applied / shortlisted / discovered |
 | `$REPO_ROOT/data/seen-jobs.yaml` | Dedup list from prior runs |
 | `$REPO_ROOT/data/recruiters.yaml` | Recruiter outreach (optional) |
-| `profile.resume_path` in config | Local resume markdown for fit scoring |
+| `profile.resume_path` in config | Local resume markdown for fit scoring (resolve per resume-feedback "Resolve `profile.resume_path`") |
 
 **Prerequisite:** If `$REPO_ROOT/data/config.yaml` is missing or still has example placeholders, stop and tell the user to run `iago-setup` (or `bash "$REPO_ROOT/scripts/init-data.sh"` then configure manually).
 

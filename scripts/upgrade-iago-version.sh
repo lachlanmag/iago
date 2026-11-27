@@ -110,7 +110,7 @@ if ! python3 -c "import ruamel.yaml" 2>/dev/null; then
   exit 2
 fi
 
-bash "$REPO_ROOT/scripts/reconcile-config.sh" "${reconcile_args[@]}"
+bash "$REPO_ROOT/scripts/reconcile-config.sh" ${reconcile_args[@]+"${reconcile_args[@]}"}
 
 if [[ "$MODE" != "dry-run" ]]; then
   workspace="${CURSOR_WORKSPACE:-$REPO_ROOT}"

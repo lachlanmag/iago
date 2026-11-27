@@ -10,6 +10,7 @@ Requires: pip3 install ruamel.yaml
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from copy import deepcopy
@@ -80,6 +81,17 @@ def main() -> int:
     if not args.example.is_file():
         print(f"Missing example config: {args.example}", file=sys.stderr)
         return 1
+
+    # Fallback only, for running this .py directly: reconcile-config.sh runs the
+    # full guard in scripts/lib/data-dir.sh (broken and unlinked) first.
+    data_link = root / "data"
+    if data_link.is_symlink() and not data_link.exists():
+        print(
+            f"data -> {os.readlink(data_link)} does not exist. Mount or sync that folder, "
+            f"or run: bash scripts/link-data.sh <folder>",
+            file=sys.stderr,
+        )
+        return 4
 
     if not args.config.is_file():
         print(

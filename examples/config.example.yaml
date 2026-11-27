@@ -5,7 +5,7 @@
 # and search sources are fully customizable for other roles via iago-setup or manual edit.
 
 profile:
-  resume_path: /path/to/your/master-resume.md  # local only; never commit
+  resume_path: resumes/YOUR-RESUME.md  # relative to your data folder (recommended), or ~/… or absolute; never commit
   location: Your City, State
   willing_to_relocate: false
   output_language: English  # optional; language for company-research, interview-prep, resume-feedback
