@@ -14,7 +14,7 @@
 |------|---------|
 | `$REPO_ROOT/data/applications.yaml` | Applied role row (`company_research`, `jd_path`, notes) |
 | `$REPO_ROOT/data/config.yaml` | `profile.resume_path`, `profile.output_language`, `integrations.resume_matcher.master_resume_source`/`api_base_url` |
-| Master resume (`profile.resume_path`, or Resume Matcher API when `master_resume_source: api`) | For STAR stories |
+| Master resume (`profile.resume_path`, or Resume Matcher API when `master_resume_source: api`) | For STAR stories (resolve per resume-feedback "Resolve `profile.resume_path`") |
 | `$REPO_ROOT/data/jds/*.md` | Full JD cached on shortlist (`jd_path` on row) |
 | `$REPO_ROOT/data/company-research/*.md` | Optional brief if `company_research` set on row |
 | `$REPO_ROOT/skills/interview-prep/prompt.md` | **Mandatory prep prompt** (apply verbatim) |
@@ -25,7 +25,7 @@
 |--------|----------|
 | Tracker row (`id` or company + title) | Yes |
 | JD (`jd_path` on row, or re-fetch canonical `url`) | Yes |
-| Master resume at `profile.resume_path` | Yes (or live from Resume Matcher API when `integrations.resume_matcher.master_resume_source: api` — see `resume-feedback/WORKFLOW.md` → Master resume resolution) |
+| Master resume at `profile.resume_path` | Yes (or live from Resume Matcher API when `integrations.resume_matcher.master_resume_source: api` — see `resume-feedback/WORKFLOW.md` → Master resume resolution) (resolve per resume-feedback "Resolve `profile.resume_path`") |
 | `company_research` artifact | Use when present |
 
 For automatic runs, the row must be `applied` (with `applied: YYYY-MM-DD`) after the tracker write.

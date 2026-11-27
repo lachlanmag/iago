@@ -107,7 +107,7 @@ Run date (${IAGO_TZ}): ${RUN_DATE}
 Use this date for the daily report filename, discovered/applied fields, listing_verified, closing-date comparisons, and listing_freshness checks: not the system UTC date.
 
 Run the full daily workflow:
-1. Load data/config.yaml, data/applications.yaml, data/seen-jobs.yaml, and profile.resume_path from config
+1. Load data/config.yaml, data/applications.yaml, data/seen-jobs.yaml, and profile.resume_path from config (relative paths are under data/)
 2. Search all sources in config search_sources.order (skip excluded_sources)
 3. For EVERY candidate during search: apply listing_freshness at intake: skip expired roles immediately
 4. Dedup every intake-passing candidate per config deduplication rules: canonical URL only

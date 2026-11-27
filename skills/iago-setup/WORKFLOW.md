@@ -19,7 +19,7 @@
 | `$REPO_ROOT/data/applications.yaml` | Tracker (init only in v1) |
 | `$REPO_ROOT/data/seen-jobs.yaml` | Dedup index (init only) |
 | `$REPO_ROOT/data/recruiters.yaml` | Recruiter tracker (init only) |
-| `profile.resume_path` in config | Local resume for fit theme extraction |
+| `profile.resume_path` in config | Local resume for fit theme extraction (resolve per resume-feedback "Resolve `profile.resume_path`") |
 | `$REPO_ROOT/scripts/link-data.sh` | Data folder status / link (step 0b; shared with `iago-data-location`) |
 
 When Iago lives inside a larger workspace (notes, tasks, other rule sets), project skills may not auto-discover; use `install-skills.sh` as fallback.
@@ -137,7 +137,7 @@ Use labels from `industry_labels` in config when possible.
 
 ### 7. Resume fit
 
-1. Read the file at `profile.resume_path`.
+1. Read the file at `profile.resume_path` (resolve per resume-feedback "Resolve `profile.resume_path`").
 2. Suggest 4–6 `resume_fit.core_themes` tailored to the user's target roles.
 3. Suggest optional `resume_fit.proof_points` (concrete highlights from resume).
 4. Present suggestions; user confirms or edits.

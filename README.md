@@ -226,7 +226,7 @@ shortlist → company-research → resume-feedback → apply → interview-prep
 shortlist → company-research → tailor via Resume-Matcher → resume-feedback → apply → interview-prep
 ```
 
-Point `profile.resume_path` at your master resume for fit scoring during search and for standalone resume feedback. To read the master resume live from Resume Matcher's database instead of a static file, set `integrations.resume_matcher.master_resume_source: api` and `api_base_url` (e.g. `http://localhost:3001`) — every skill that reads the master resume falls back to `profile.resume_path` if the API call fails. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
+Point `profile.resume_path` at your master resume (relative paths are under `data/`, e.g. `resumes/master-resume.md`) for fit scoring during search and for standalone resume feedback. To read the master resume live from Resume Matcher's database instead of a static file, set `integrations.resume_matcher.master_resume_source: api` and `api_base_url` (e.g. `http://localhost:3001`) — every skill that reads the master resume falls back to `profile.resume_path` if the API call fails. Shortlisting via `update-application` or pipeline review saves the full JD to `data/jds/` and sets `jd_path` on the tracker row automatically.
 
 If you initialized `data/` before v1.1, re-run `bash scripts/init-data.sh` to create `jds/`, `company-research/`, `interview-prep/`, and `resume-feedback/` (safe to re-run; existing config files are not overwritten).
 
@@ -268,7 +268,7 @@ Trigger phrases: company brief, role brief, `/iago-brief`, `/company-research`. 
 
 Reviews your resume against the job description. Does not rewrite the resume. Artifacts save to `data/resume-feedback/`.
 
-**Standalone (default):** Reviews markdown from `profile.resume_path` (or an override path you provide) against the JD. No Resume-Matcher or JSON required.
+**Standalone (default):** Reviews markdown from `profile.resume_path` (relative paths are under `data/`; or an override path you provide) against the JD. No Resume-Matcher or JSON required.
 
 **With Resume-Matcher:** Set `integrations.resume_matcher.enabled: true` in `data/config.yaml`, tailor via [Resume-Matcher](https://github.com/srbhr/Resume-Matcher), then provide the tailored JSON path (or inline JSON) for review.
 

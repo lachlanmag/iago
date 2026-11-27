@@ -526,6 +526,9 @@ check "adopt: status in-repo" test "$(link "$r" --status | field mode)" = in-rep
 shim "$SANDBOX/shim-agent" cursor 'exit 0'
 CURSOR_CLI_PATH="$SANDBOX/shim-agent/cursor" bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1; rc=$?
 check "adopt: run-daily-search no longer exits 4" test "$rc" != 4
+shim "$SANDBOX/shim-agent-args" cursor 'printf "%s\n" "$@" > "${0%/*}/args.txt"'
+CURSOR_CLI_PATH="$SANDBOX/shim-agent-args/cursor" bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1
+check "headless prompt: relative resume_path is under data/" grep -q "profile.resume_path from config (relative paths are under data/)" "$SANDBOX/shim-agent-args/args.txt"
 r="$(new_repo unl-adopt-dry)"; t="$SANDBOX/unl-adopt-dry-target"; link "$r" "$t" >/dev/null; rm "$r/data"; mkdir "$r/data"; seed "$r/data"
 before="$(snap "$r" "$t")"
 out="$(link "$r" --unlink --dry-run 2>/dev/null)"; rc=$?
