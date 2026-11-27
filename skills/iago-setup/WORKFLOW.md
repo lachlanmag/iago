@@ -63,7 +63,7 @@ Decide where this computer keeps Iago data **before** any data file is created. 
    | `in-repo` with files | Say where the data is and offer **Move to a folder outside the repo** (run the iago-data-location flow now) or **Keep as is**. Never force a move. |
    | `linked` | Say "Using `<target>`." and continue without asking. |
    | `broken` | Stop setup. Offer **Pick a different folder** or **I'll reconnect the sync folder**. Never initialize an empty folder at the missing path. |
-   | `unlinked` | Stop setup. Tell the user which folder Iago expects (`configured=`) and offer **Re-link to it** or **Pick another folder** (iago-data-location flow). Never run `init-data.sh` until `--status` reports `linked` or `in-repo`. |
+   | `unlinked` | Stop setup. Tell the user which folder Iago expects (`configured=`) and offer **Re-link to it**, **Pick another folder**, or, when `data/` is a real folder with files, **Keep the in-repo data** (`link-data.sh --unlink`; iago-data-location flow). Never run `init-data.sh` until `--status` reports `linked` or `in-repo`. |
    | `other` | Stop setup. A file named `data` is in the way; ask the user to move it. |
 
 3. **Second computer:** if the chosen folder already contains `config.yaml`, say "Found existing Iago data (last updated <mtime of applications.yaml>). Linking to it; nothing will be overwritten." In step 1, default to **Update config**.
@@ -73,7 +73,7 @@ Decide where this computer keeps Iago data **before** any data file is created. 
 
 Check whether core files exist: `$REPO_ROOT/data/config.yaml`, `$REPO_ROOT/data/applications.yaml`, `$REPO_ROOT/data/seen-jobs.yaml`.
 
-If any are missing, run `init-data.sh` with the choice from step 0b (never bare, so it does not prompt a second time). If 0b found `linked`, pass `--data-dir "<target from --status>"` (a no-op link); if `in-repo` and the user kept it, pass `--keep-in-repo`:
+If any are missing, run `init-data.sh` with the choice from step 0b (never bare, so it does not prompt a second time): pass `--keep-in-repo` if `link-data.sh --status` now says `in-repo` (or `missing` and the user chose **Keep in repo**), otherwise `--data-dir "<target from --status or the confirmed dry-run>"`:
 
 ```bash
 bash "$REPO_ROOT/scripts/init-data.sh" --data-dir "<chosen folder>"   # or: --keep-in-repo
@@ -178,7 +178,7 @@ Collect `watch_companies`: company names to monitor on ATS boards (Lever, Workab
 
 | Check | On failure |
 |-------|------------|
-| `profile.resume_path` exists (resolved per the rule above) | Block save; ask for corrected path |
+| `profile.resume_path` exists (resolved per resume-feedback "Resolve `profile.resume_path`") | Block save; ask for corrected path |
 | At least one search source enabled | Block save |
 | URLs resolve (fetch or browser) | Warn; allow save if user confirms |
 

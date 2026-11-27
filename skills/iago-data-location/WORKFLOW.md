@@ -40,14 +40,14 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 | 1 | Usage error; `data` is a file, not a folder (`mode=other`); or the move failed (nothing removed from `data/`). The error names where any copy is: a partial copy at `<folder>.iago-partial.<pid>` (safe to delete), or a full copy already in `<folder>` when the final check failed (for example the sync tool re-created the folder mid-move). It also fails, before touching `<folder>`, when relative symlinks in `data/` would break after the move. |
 | 2 | Conflict: both `data/` and the folder have files; nothing changed |
 | 3 | Refused: folder is inside the Iago repo, or contains it (e.g. a parent folder or `~`) |
-| 4 | `--status` only: `data` points at a folder that does not exist (`broken`), or `data` is not linked to the configured folder (`unlinked`, e.g. after a git checkout of an old Iago version) |
+| 4 | Data folder not reachable. From `--status`: `data` points at a folder that does not exist (`broken`), or `data` is not linked to the configured folder (`unlinked`, e.g. after a git checkout of an old Iago version). From apply/`--dry-run`: `action=missing-target` (the linked folder still does not exist). From `--unlink`: `data` is `broken`, so there is nothing to copy back. Any script guarded by `scripts/lib/data-dir.sh` (`run-daily-search.sh`, `init-data.sh`, `reconcile-config.sh`) also exits 4 for `broken`/`unlinked`, with the same fix-it hint: run this skill. |
 
 | `action` | Meaning to tell the user |
 |----------|--------------------------|
 | `move` | "Move your N files (X MB) from the repo into `<folder>`, then link to it." |
 | `link` | "`<folder>` already has Iago data (N files). Link to it; nothing is copied or overwritten." |
 | `create` | "Start a new, empty data folder at `<folder>`." |
-| `repoint` | "Switch from `<old>` to `<folder>`. Nothing is moved; the old folder is left as is." If `target_files=0`, warn: "the new folder is empty, so Iago will look like a fresh install." |
+| `repoint` | Say up front: "Switch from `<old>` to `<folder>`. This does not move your data; the old folder is left as is." If `<old>` has files and `target_files=0`, offer **Copy my data across first** (with confirmation): run `cp -Rp "<old>/." "<folder>/"`, then `diff -rq "<old>" "<folder>"` must print nothing (if it does, stop and report), then re-run the dry-run (it will now say `repoint` with the copied file count). If the user declines, warn: "the new folder is empty, so Iago will look like a fresh install." |
 | `noop` | "Already using `<folder>`." |
 | `missing-target` | Exit 4, nothing changed: `data` already points at `<folder>`, but that folder still does not exist. "`<folder>` still can't be found: reconnect or mount it (sync drive, network share), or choose a different folder." Never create it without asking. |
 | `conflict` | See Conflict below. |
@@ -98,7 +98,7 @@ Run `--dry-run "<folder>"`, describe the `action` using the table above (convert
 
 ### 5. Apply and confirm
 
-Run `link-data.sh "<folder>"`, then `--status`, and report the new location and file count. If called from `iago-setup` while `mode=missing`, skip this step and return the confirmed folder to setup (setup links it via `init-data.sh --data-dir`); otherwise apply here, then return to setup.
+Run `link-data.sh "<folder>"`, then `--status`, and report the new location and file count. If called from `iago-setup` while `mode=missing` or (`mode=in-repo` and `files=0`), skip this step and return the confirmed folder to setup (setup links it via `init-data.sh --data-dir`); otherwise apply here, then return to setup.
 
 If the output has `leftover=`, the move succeeded and the data is linked, but the old in-repo copy was kept: either it could not be fully deleted (read-only files), or something wrote to `data/` during the move so it holds changes the linked folder lacks (the warning on stderr says which). Tell the user which case applies. For the "changes" case, offer to compare it with the linked folder (`diff -rq "<leftover>" "$REPO_ROOT/data/"`) and copy any newer files across with their confirmation. Only then say the `leftover` folder (inside the repo, gitignored) can be deleted; never delete it yourself. `--status` keeps listing it as `leftover=` until it is gone.
 
