@@ -85,7 +85,7 @@ overlaps_repo() {
 }
 
 refuse_msg() {
-  echo "error: $(tilde "$1") is inside the Iago repo or contains it; choose a folder outside $(tilde "$REPO_ROOT")" >&2
+  echo "error: $(iago_tilde "$1") is inside the Iago repo or contains it; choose a folder outside $(iago_tilde "$REPO_ROOT")" >&2
 }
 
 # Re-check after creating directories, right before copying or deleting.
@@ -94,16 +94,6 @@ require_outside_repo() {
     refuse_msg "$1"
     exit 3
   fi
-}
-
-tilde() {
-  local p="$1" home
-  home="$(cd "$HOME" 2>/dev/null && pwd -P || echo "$HOME")"
-  case "$p" in
-    "$home") echo "~" ;;
-    "$home"/*) echo "~/${p#"$home"/}" ;;
-    *) echo "$p" ;;
-  esac
 }
 
 # Count real files and symlinks (ignore Finder/git placeholders).
@@ -122,23 +112,17 @@ data_mode() {
   iago_data_mode "$REPO_ROOT" ""
 }
 
-# Remember this machine's folder so a git checkout that drops the symlink is
-# detected later. Skipped silently when git or the repo's own .git is missing.
-record_configured() {
-  iago_record_configured "$REPO_ROOT" "$1"
-}
-
 cmd_status() {
   local mode physical conf
   conf="$(iago_configured_dir "$REPO_ROOT")"
   mode="$(iago_data_mode "$REPO_ROOT" "$conf")"
   physical="$(data_mode)"
   echo "mode=$mode"
-  echo "repo=$(tilde "$REPO_ROOT")"
-  echo "configured=${conf:+$(tilde "$conf")}"
+  echo "repo=$(iago_tilde "$REPO_ROOT")"
+  echo "configured=${conf:+$(iago_tilde "$conf")}"
   case "$physical" in
-    linked|broken) echo "target=$(tilde "$(readlink "$DATA")")" ;;
-    in-repo|other) echo "target=$(tilde "$DATA")" ;;
+    linked|broken) echo "target=$(iago_tilde "$(readlink "$DATA")")" ;;
+    in-repo|other) echo "target=$(iago_tilde "$DATA")" ;;
     *) echo "target=" ;;
   esac
   echo "files=$(count_files "$DATA")"
@@ -146,7 +130,7 @@ cmd_status() {
   # Old copies kept after a move (see remove_moved_aside).
   local aside
   for aside in "$DATA".iago-moved.*; do
-    [[ -d "$aside" ]] && echo "leftover=$(tilde "$aside")"
+    [[ -d "$aside" ]] && echo "leftover=$(iago_tilde "$aside")"
   done
   case "$mode" in
     broken|unlinked)
@@ -191,7 +175,7 @@ print_plan() {
   local action="$1" target="$2"
   echo "action=$action"
   echo "mode=$(data_mode)"
-  echo "target=$(tilde "$target")"
+  echo "target=$(iago_tilde "$target")"
   # Never count a refused target: it may be a huge parent folder (or /).
   [[ "$action" == refuse ]] && return 0
   echo "local_files=$(count_files "$DATA")"
@@ -216,14 +200,14 @@ make_link() {
 
 move_fail() {
   echo "error: $1; data/ left in place, nothing removed." >&2
-  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(tilde "$2") (safe to delete)." >&2
+  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(iago_tilde "$2") (safe to delete)." >&2
   return 1
 }
 
 # The copy is already in the target folder but data/ was not removed.
 copy_kept_fail() {
   echo "error: $1; data/ left in place, nothing removed." >&2
-  echo "  A copy of your data is in $(tilde "$2"); check it before deleting anything there." >&2
+  echo "  A copy of your data is in $(iago_tilde "$2"); check it before deleting anything there." >&2
   return 1
 }
 
@@ -258,10 +242,10 @@ move_data() {
   local target="$1" parent staging before after new_dangling
   parent="$(dirname "$target")"
   staging="$parent/$(basename "$target").iago-partial.$$"
-  mkdir -p "$parent" || { move_fail "could not create $(tilde "$parent")"; return 1; }
+  mkdir -p "$parent" || { move_fail "could not create $(iago_tilde "$parent")"; return 1; }
   require_outside_repo "$target"
   require_outside_repo "$staging"
-  mkdir "$staging" || { move_fail "could not create $(tilde "$staging")"; return 1; }
+  mkdir "$staging" || { move_fail "could not create $(iago_tilde "$staging")"; return 1; }
   before="$(count_files "$DATA")"
   if ! cp -Rp "$DATA/." "$staging/"; then
     move_fail "copy failed" "$staging"; return 1
@@ -282,19 +266,19 @@ move_data() {
     move_fail "symlinks in data/ would break after the move" "$staging"; return 1
   fi
   if [[ -d "$target" && ! -L "$target" ]]; then
-    clear_placeholders "$target" || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+    clear_placeholders "$target" || { move_fail "$(iago_tilde "$target") is not empty" "$staging"; return 1; }
     if [[ -d "$target" ]]; then
-      rmdir "$target" 2>/dev/null || { move_fail "$(tilde "$target") is not empty" "$staging"; return 1; }
+      rmdir "$target" 2>/dev/null || { move_fail "$(iago_tilde "$target") is not empty" "$staging"; return 1; }
     fi
   elif [[ -e "$target" || -L "$target" ]]; then
-    move_fail "$(tilde "$target") exists and is not a folder" "$staging"; return 1
+    move_fail "$(iago_tilde "$target") exists and is not a folder" "$staging"; return 1
   fi
-  mv "$staging" "$target" || { move_fail "could not move $(tilde "$staging") to $(tilde "$target")" "$staging"; return 1; }
+  mv "$staging" "$target" || { move_fail "could not move $(iago_tilde "$staging") to $(iago_tilde "$target")" "$staging"; return 1; }
   # Something (e.g. a sync client) may have re-created the target in between,
   # in which case mv nested the staging folder inside it.
   if [[ -e "$staging" ]] || ! same_tree "$DATA" "$target" \
      || [[ "$(count_files "$target")" != "$before" ]]; then
-    copy_kept_fail "could not verify the moved copy in $(tilde "$target")" "$target"; return 1
+    copy_kept_fail "could not verify the moved copy in $(iago_tilde "$target")" "$target"; return 1
   fi
   MOVED_ASIDE="$DATA.iago-moved.$$"
   if ! mv "$DATA" "$MOVED_ASIDE"; then
@@ -310,13 +294,13 @@ remove_moved_aside() {
   [[ -n "$MOVED_ASIDE" ]] || return 0
   # Something may have written to data/ after the last verification.
   if ! same_tree "$MOVED_ASIDE" "$target_for_aside"; then
-    echo "leftover=$(tilde "$MOVED_ASIDE")"
-    echo "warning: the old copy at $(tilde "$MOVED_ASIDE") has changes that are not in the linked folder (something wrote to data/ during the move). It was kept: copy anything you need into data/, then delete it." >&2
+    echo "leftover=$(iago_tilde "$MOVED_ASIDE")"
+    echo "warning: the old copy at $(iago_tilde "$MOVED_ASIDE") has changes that are not in the linked folder (something wrote to data/ during the move). It was kept: copy anything you need into data/, then delete it." >&2
     return 0
   fi
   if ! rm -rf "$MOVED_ASIDE" 2>/dev/null; then
-    echo "leftover=$(tilde "$MOVED_ASIDE")"
-    echo "warning: could not fully delete the old copy at $(tilde "$MOVED_ASIDE"). Your data is safe in the linked folder; delete the old copy by hand." >&2
+    echo "leftover=$(iago_tilde "$MOVED_ASIDE")"
+    echo "warning: could not fully delete the old copy at $(iago_tilde "$MOVED_ASIDE"). Your data is safe in the linked folder; delete the old copy by hand." >&2
   fi
 }
 
@@ -336,12 +320,12 @@ cmd_apply() {
       return 3 ;;
     conflict)
       if [[ "$force" != true ]]; then
-        echo "error: both data/ and $(tilde "$target") contain files; nothing changed." >&2
+        echo "error: both data/ and $(iago_tilde "$target") contain files; nothing changed." >&2
         echo "hint=Pick which copy to keep. --force backs up data/ to data.local-backup-<timestamp>/ and links to the target." >&2
         return 2
       fi ;;
     missing-target)
-      echo "error: the folder $(tilde "$target") still does not exist: reconnect/mount it, or choose a different folder" >&2
+      echo "error: the folder $(iago_tilde "$target") still does not exist: reconnect/mount it, or choose a different folder" >&2
       return 4 ;;
   esac
 
@@ -352,7 +336,7 @@ cmd_apply() {
       local conf
       conf="$(iago_configured_dir "$REPO_ROOT")"
       if [[ -z "$conf" ]] || ! [[ -e "$conf" && "$conf" -ef "$target" ]]; then
-        record_configured "$target"
+        iago_record_configured "$REPO_ROOT" "$target"
       fi ;;
     create|link)
       mkdir -p "$target"
@@ -367,11 +351,10 @@ cmd_apply() {
         if [[ ! -e "$DATA" && ! -L "$DATA" ]] && mv "$MOVED_ASIDE" "$DATA"; then
           copy_kept_fail "could not create the data link" "$target"
         else
-          echo "error: could not create the data link; your data is in $(tilde "$target") and the old copy in $(tilde "$MOVED_ASIDE")." >&2
+          echo "error: could not create the data link; your data is in $(iago_tilde "$target") and the old copy in $(iago_tilde "$MOVED_ASIDE")." >&2
         fi
         return 1
       fi
-      record_configured "$target"
       remove_moved_aside "$target" ;;
     repoint)
       mkdir -p "$target"
@@ -383,10 +366,12 @@ cmd_apply() {
       local backup
       backup="$DATA.local-backup-$(date +%Y%m%d-%H%M%S)"
       mv "$DATA" "$backup"
-      echo "backup=$(tilde "$backup")"
+      echo "backup=$(iago_tilde "$backup")"
       make_link "$target" ;;
   esac
-  [[ "$action" == noop ]] || record_configured "$target"
+  # Remember this machine's folder so a git checkout that drops the link is
+  # detected later (skipped when git or the repo's own .git is missing).
+  [[ "$action" == noop ]] || iago_record_configured "$REPO_ROOT" "$target"
   echo "result=ok"
 }
 
@@ -405,7 +390,7 @@ unlink_restore() {
 
 unlink_fail() {
   echo "error: $1; the data link and configured folder were left in place." >&2
-  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(tilde "$2") (safe to delete)." >&2
+  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(iago_tilde "$2") (safe to delete)." >&2
   if [[ ! -L "$DATA" ]]; then
     echo "  warning: could not restore the data link; run: bash scripts/link-data.sh \"$3\"" >&2
   fi
@@ -427,8 +412,8 @@ cmd_unlink() {
     broken)
       echo "action=unlink"
       echo "mode=broken"
-      echo "target=$(tilde "$(readlink "$DATA")")"
-      echo "error: data -> $(tilde "$(readlink "$DATA")") does not exist, so there is nothing to copy back. Reconnect/mount that folder first, then re-run." >&2
+      echo "target=$(iago_tilde "$(readlink "$DATA")")"
+      echo "error: data -> $(iago_tilde "$(readlink "$DATA")") does not exist, so there is nothing to copy back. Reconnect/mount that folder first, then re-run." >&2
       return 4 ;;
     missing)
       echo "action=noop"
@@ -446,13 +431,13 @@ cmd_unlink() {
         echo "action=adopt"
       fi
       echo "mode=$mode"
-      echo "target=$(tilde "$DATA")"
+      echo "target=$(iago_tilde "$DATA")"
       echo "files=$(count_files "$DATA")"
       echo "kb=$(kb_of "$DATA")"
       [[ "$dry" == true ]] && return 0
       if [[ -n "$conf" ]]; then
         iago_unset_configured "$REPO_ROOT"
-        echo "Keeping the data inside the repo. $(tilde "$conf") was not modified or deleted." >&2
+        echo "Keeping the data inside the repo. $(iago_tilde "$conf") was not modified or deleted." >&2
       fi
       echo "result=ok"
       return 0 ;;
@@ -460,16 +445,16 @@ cmd_unlink() {
 
   # linked
   target="$(readlink "$DATA")"
-  src="$(cd -P "$DATA" 2>/dev/null && pwd -P)" || { echo "error: cannot open $(tilde "$target")" >&2; return 1; }
+  src="$(cd -P "$DATA" 2>/dev/null && pwd -P)" || { echo "error: cannot open $(iago_tilde "$target")" >&2; return 1; }
   echo "action=unlink"
   echo "mode=$mode"
-  echo "target=$(tilde "$target")"
+  echo "target=$(iago_tilde "$target")"
   echo "files=$(count_files "$src")"
   echo "kb=$(kb_of "$src")"
   [[ "$dry" == true ]] && return 0
 
   staging="$DATA.iago-partial.$$"
-  mkdir "$staging" || { unlink_fail "could not create $(tilde "$staging")" "" "$target"; return 1; }
+  mkdir "$staging" || { unlink_fail "could not create $(iago_tilde "$staging")" "" "$target"; return 1; }
   before="$(count_files "$src")"
   if ! cp -Rp "$src/." "$staging/"; then
     unlink_fail "copy failed" "$staging" "$target"; return 1
@@ -496,7 +481,7 @@ cmd_unlink() {
     unlink_fail "could not verify the copy in data/" "$staging" "$target"; return 1
   fi
   iago_unset_configured "$REPO_ROOT"
-  echo "Your data is now inside the repo. $(tilde "$target") was not modified or deleted (other computers may still use it)." >&2
+  echo "Your data is now inside the repo. $(iago_tilde "$target") was not modified or deleted (other computers may still use it)." >&2
   echo "result=ok"
 }
 

@@ -572,6 +572,16 @@ else
   check "failed unlink: partial copy ignored by git" test -z "$(cd "$r" && git status --porcelain)"
   chmod 644 "$t/secret.yaml"; chmod -R u+rwX "$r"/data.iago-partial.* 2>/dev/null
 fi
+# --- section: hints ---
+echo "hints print paths in ~ form"
+r="$(new_repo hint-broken)"; t="$HOME/hint-gone"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm -rf "$t"
+bash "$r/scripts/run-daily-search.sh" >/dev/null 2>"$SANDBOX/hint.err"
+check "broken hint uses ~" grep -q "data -> ~/hint-gone does not exist" "$SANDBOX/hint.err"
+r="$(new_repo hint-unlinked)"; t="$HOME/hint-cfg"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm "$r/data"
+bash "$r/scripts/run-daily-search.sh" >/dev/null 2>"$SANDBOX/hint.err"
+check "unlinked hint uses ~" grep -q "configured folder ~/hint-cfg\." "$SANDBOX/hint.err"
+check "unlinked hint mentions --unlink" grep -q "link-data.sh --unlink" "$SANDBOX/hint.err"
+check "unlinked hint command still works with ~" bash -c "bash '$r/scripts/link-data.sh' --dry-run '~/hint-cfg' >/dev/null"
 echo "unlink: data/ re-created between removing the link and moving the copy in"
 r="$(new_repo unl-race)"; t="$SANDBOX/unl-race-target"; seed "$t"; link "$r" "$t" >/dev/null
 ext_before="$(sums "$t")"

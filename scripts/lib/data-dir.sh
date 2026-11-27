@@ -36,6 +36,17 @@ iago_unset_configured() {
   git -C "$repo" config --local --unset iago.dataDir 2>/dev/null || true
 }
 
+# Print $1 with the home folder shown as ~ (for messages only).
+iago_tilde() {
+  local p="$1" home
+  home="$(cd "$HOME" 2>/dev/null && pwd -P || echo "$HOME")"
+  case "$p" in
+    "$home") echo "~" ;;
+    "$home"/*) echo "~/${p#"$home"/}" ;;
+    *) echo "$p" ;;
+  esac
+}
+
 # Print the data/ mode: missing, in-repo, linked, broken, other (a non-folder
 # named data), or unlinked (a folder is configured but data/ does not point
 # at it). Pass an empty configured folder to get the physical state only.
@@ -63,9 +74,9 @@ iago_data_hint() {
   local ask='(or ask in chat: "change my Iago data folder")'
   case "$mode" in
     broken)
-      echo "data -> $(readlink "$repo/data") does not exist. Mount or sync that folder, or run: bash scripts/link-data.sh <folder> $ask" ;;
+      echo "data -> $(iago_tilde "$(readlink "$repo/data")") does not exist. Mount or sync that folder, or run: bash scripts/link-data.sh <folder> $ask" ;;
     unlinked)
-      echo "data/ is not linked to the configured folder $conf. Run: bash scripts/link-data.sh \"$conf\", or to keep the data inside the repo instead: bash scripts/link-data.sh --unlink $ask" ;;
+      echo "data/ is not linked to the configured folder $(iago_tilde "$conf"). Run: bash scripts/link-data.sh \"$(iago_tilde "$conf")\", or to keep the data inside the repo instead: bash scripts/link-data.sh --unlink $ask" ;;
     other)
       echo "data is a file, not a folder. Move it aside, then run: bash scripts/link-data.sh <folder> $ask" ;;
   esac
