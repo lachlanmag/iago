@@ -376,6 +376,7 @@ Notes:
 - macOS and Linux. On Windows, run Iago under WSL.
 - Iago remembers this computer's folder (in the clone's git config, `iago.dataDir`). If a git checkout (for example of an old Iago version) removes the `data` link, scripts stop with a fix-it message instead of starting an empty `data/`. Re-run `bash scripts/link-data.sh <folder>` or ask chat to fix the Iago data folder.
 - Other git worktrees of the same clone share that setting, so each must link to the same folder: run `bash scripts/link-data.sh <configured folder>` in the worktree.
+- To move data back into the repo on this computer: ask chat to "move my Iago data back into the repo", or run `bash scripts/link-data.sh --unlink` (`--dry-run` to preview). It copies the folder's contents into `data/`, verifies them, and stops using the folder; the folder itself is never changed or deleted.
 - Don't change the data folder while a daily search is running.
 
 ## Roadmap

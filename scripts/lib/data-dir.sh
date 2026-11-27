@@ -29,6 +29,13 @@ iago_record_configured() {
   git -C "$repo" config --local iago.dataDir "$dir" 2>/dev/null || true
 }
 
+# Forget this clone's data folder (same conditions as iago_configured_dir).
+iago_unset_configured() {
+  local repo="$1"
+  iago_own_git_repo "$repo" || return 0
+  git -C "$repo" config --local --unset iago.dataDir 2>/dev/null || true
+}
+
 # Print the data/ mode: missing, in-repo, linked, broken, other (a non-folder
 # named data), or unlinked (a folder is configured but data/ does not point
 # at it). Pass an empty configured folder to get the physical state only.
@@ -58,7 +65,7 @@ iago_data_hint() {
     broken)
       echo "data -> $(readlink "$repo/data") does not exist. Mount or sync that folder, or run: bash scripts/link-data.sh <folder> $ask" ;;
     unlinked)
-      echo "data/ is not linked to the configured folder $conf. Run: bash scripts/link-data.sh \"$conf\" $ask" ;;
+      echo "data/ is not linked to the configured folder $conf. Run: bash scripts/link-data.sh \"$conf\", or to keep the data inside the repo instead: bash scripts/link-data.sh --unlink $ask" ;;
     other)
       echo "data is a file, not a folder. Move it aside, then run: bash scripts/link-data.sh <folder> $ask" ;;
   esac

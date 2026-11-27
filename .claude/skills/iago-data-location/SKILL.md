@@ -4,7 +4,8 @@ description: >-
   Show or change where Iago stores job search data on this computer (in the
   repo, or a folder outside it that the user syncs with any tool). Use when
   the user says where is my iago data, move my data, change data folder, use
-  iago on another computer, set up sync, data folder missing, or runs
+  iago on another computer, set up sync, move data back into the repo,
+  data folder missing, or runs
   /iago-data-location. Does not sync files itself.
 ---
 

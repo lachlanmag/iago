@@ -2,6 +2,7 @@
 /data
 /data.local-backup-*/
 /data.iago-moved.*/
+/data.iago-partial.*/
 
 # OS
 .DS_Store

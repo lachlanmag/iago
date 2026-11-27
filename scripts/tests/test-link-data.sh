@@ -478,6 +478,110 @@ check "missing target: no result=ok" test -z "$(echo "$out" | field result)"
 check "missing target: error says still does not exist" grep -q "still does not exist" "$SANDBOX/mt.err"
 check "missing target: nothing changed" test "$(snap "$r" "$t")" = "$before"
 check "missing target: folder not created" test ! -e "$t"
+# --- section: unlink ---
+sums() { (cd "$1" && find . -exec ls -ld {} + | awk '{print $1, $5, $NF}' | sort; find . -type f -exec cksum {} + | sort); }
+echo "unlink: linked data is copied back into the repo"
+r="$(new_repo unl)"; seed "$r/data"; mkdir -p "$r/data/jds/deep"; printf 'l1\nl2\n' > "$r/data/jds/deep/x.md"; touch "$r/data/.hidden"
+t="$SANDBOX/unl-target"; link "$r" "$t" >/dev/null
+ext_before="$(sums "$t")"
+out="$(link "$r" --unlink 2>"$SANDBOX/unl.err")"; rc=$?
+check "unlink: exit 0" test "$rc" = 0
+check "unlink: action=unlink" test "$(echo "$out" | field action)" = unlink
+check "unlink: mode=linked" test "$(echo "$out" | field mode)" = linked
+check "unlink: target reported" test "$(echo "$out" | field target)" = "$t"
+check "unlink: files=4" test "$(echo "$out" | field files)" = 4
+check "unlink: kb reported" test -n "$(echo "$out" | field kb)"
+check "unlink: result=ok" test "$(echo "$out" | field result)" = ok
+check "unlink: data is a real dir" test -d "$r/data" -a ! -L "$r/data"
+check "unlink: content identical" diff -r "$t" "$r/data"
+check "unlink: config unset" test -z "$(cfg "$r")"
+check "unlink: external folder unchanged" test "$(sums "$t")" = "$ext_before"
+check "unlink: says external folder kept" grep -qi "not modified\|left as is\|unchanged" <<< "$out$(cat "$SANDBOX/unl.err")"
+check "unlink: no staging left" test -z "$(ls -d "$r"/data.iago-partial.* 2>/dev/null)"
+check "unlink: status in-repo" test "$(link "$r" --status | field mode)" = in-repo
+check "unlink: git status clean" test -z "$(cd "$r" && git status --porcelain)"
+
+echo "unlink: dry-run changes nothing"
+r="$(new_repo unl-dry)"; seed "$r/data"; t="$SANDBOX/unl-dry-target"; link "$r" "$t" >/dev/null
+before="$(snap "$r" "$t")"
+out="$(link "$r" --unlink --dry-run 2>/dev/null)"; rc=$?
+check "unlink dry: exit 0" test "$rc" = 0
+check "unlink dry: action=unlink" test "$(echo "$out" | field action)" = unlink
+check "unlink dry: no result=ok" test -z "$(echo "$out" | field result)"
+check "unlink dry: nothing changed" test "$(snap "$r" "$t")" = "$before"
+
+echo "unlink: unlinked with real in-repo data -> adopt"
+r="$(new_repo unl-adopt)"; t="$SANDBOX/unl-adopt-target"; seed "$t"; link "$r" "$t" >/dev/null
+rm "$r/data"; mkdir "$r/data"; seed "$r/data"; echo mine > "$r/data/mine.md"
+check "adopt: status unlinked first" test "$(link "$r" --status 2>/dev/null | field mode)" = unlinked
+ext_before="$(sums "$t")"; data_before="$(sums "$r/data")"
+out="$(link "$r" --unlink 2>/dev/null)"; rc=$?
+check "adopt: exit 0" test "$rc" = 0
+check "adopt: action=adopt" test "$(echo "$out" | field action)" = adopt
+check "adopt: result=ok" test "$(echo "$out" | field result)" = ok
+check "adopt: config unset" test -z "$(cfg "$r")"
+check "adopt: in-repo data unchanged" test "$(sums "$r/data")" = "$data_before"
+check "adopt: external folder unchanged" test "$(sums "$t")" = "$ext_before"
+check "adopt: status in-repo" test "$(link "$r" --status | field mode)" = in-repo
+shim "$SANDBOX/shim-agent" cursor 'exit 0'
+CURSOR_CLI_PATH="$SANDBOX/shim-agent/cursor" bash "$r/scripts/run-daily-search.sh" >/dev/null 2>&1; rc=$?
+check "adopt: run-daily-search no longer exits 4" test "$rc" != 4
+r="$(new_repo unl-adopt-dry)"; t="$SANDBOX/unl-adopt-dry-target"; link "$r" "$t" >/dev/null; rm "$r/data"; mkdir "$r/data"; seed "$r/data"
+before="$(snap "$r" "$t")"
+out="$(link "$r" --unlink --dry-run 2>/dev/null)"; rc=$?
+check "adopt dry: action=adopt, exit 0" test "$(echo "$out" | field action)" = adopt -a "$rc" = 0
+check "adopt dry: nothing changed" test "$(snap "$r" "$t")" = "$before"
+
+echo "unlink: in-repo / missing / broken / other"
+r="$(new_repo unl-inrepo)"; seed "$r/data"
+out="$(link "$r" --unlink 2>/dev/null)"; rc=$?
+check "in-repo: action=noop, exit 0" test "$(echo "$out" | field action)" = noop -a "$rc" = 0
+check "in-repo: data untouched" test -f "$r/data/config.yaml" -a ! -L "$r/data"
+r="$(new_repo unl-missing)"; git -C "$r" config --local iago.dataDir "$SANDBOX/unl-missing-x"
+out="$(link "$r" --unlink 2>&1)"; rc=$?
+check "missing: action=noop, exit 0" test "$(echo "$out" | field action)" = noop -a "$rc" = 0
+check "missing: config unset" test -z "$(cfg "$r")"
+check "missing: suggests init-data --keep-in-repo" grep -q "init-data.sh --keep-in-repo" <<< "$out"
+check "missing: no data created" test ! -e "$r/data"
+r="$(new_repo unl-broken)"; t="$SANDBOX/unl-broken-gone"; mkdir -p "$t"; link "$r" "$t" >/dev/null; rm -rf "$t"
+before="$(snap "$r" "$t")"
+link "$r" --unlink >/dev/null 2>&1; rc=$?
+check "broken: exit 4" test "$rc" = 4
+check "broken: nothing changed" test "$(snap "$r" "$t")" = "$before"
+r="$(new_repo unl-other)"; echo precious > "$r/data"
+link "$r" --unlink >/dev/null 2>&1; rc=$?
+check "other: exit 1" test "$rc" = 1
+check "other: file untouched" test "$(cat "$r/data")" = precious
+r="$(new_repo unl-arg)"; link "$r" --unlink "$SANDBOX/x" >/dev/null 2>&1; rc=$?
+check "unlink with a folder argument: exit 1" test "$rc" = 1
+
+if [[ "$(id -u)" == 0 ]]; then
+  echo "  skip failed-unlink test (running as root)"
+else
+  echo "unlink: copy failure leaves the link and config in place"
+  r="$(new_repo unl-fail)"; t="$SANDBOX/unl-fail-target"; seed "$t"; echo s > "$t/secret.yaml"; link "$r" "$t" >/dev/null
+  chmod 000 "$t/secret.yaml"
+  ext_before="$(ls -lR "$t")"
+  err="$(link "$r" --unlink 2>&1 >"$SANDBOX/unl-fail.out")"; rc=$?
+  check "failed unlink: exit 1" test "$rc" = 1
+  check "failed unlink: no result=ok" test -z "$(field result < "$SANDBOX/unl-fail.out")"
+  check "failed unlink: link intact" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
+  check "failed unlink: config unchanged" test "$(cfg "$r")" = "$t"
+  check "failed unlink: external folder unchanged" test "$(ls -lR "$t")" = "$ext_before"
+  check "failed unlink: error names the partial copy" grep -q "data.iago-partial" <<< "$err"
+  check "failed unlink: partial copy ignored by git" test -z "$(cd "$r" && git status --porcelain)"
+  chmod 644 "$t/secret.yaml"; chmod -R u+rwX "$r"/data.iago-partial.* 2>/dev/null
+fi
+echo "unlink: data/ re-created between removing the link and moving the copy in"
+r="$(new_repo unl-race)"; t="$SANDBOX/unl-race-target"; seed "$t"; link "$r" "$t" >/dev/null
+ext_before="$(sums "$t")"
+shim "$SANDBOX/shim-unl-race" mv 'case "$1" in *iago-partial*) mkdir -p "$2" ;; esac; exec "$REAL" "$@"'
+err="$(PATH="$SANDBOX/shim-unl-race:$PATH" bash "$r/scripts/link-data.sh" --unlink 2>&1 >/dev/null)"; rc=$?
+check "unlink race: exit 1" test "$rc" = 1
+check "unlink race: link restored" test -L "$r/data" -a "$(readlink "$r/data")" = "$t"
+check "unlink race: config unchanged" test "$(cfg "$r")" = "$t"
+check "unlink race: external folder unchanged" test "$(sums "$t")" = "$ext_before"
+check "unlink race: partial copy named and kept" test -d "$(ls -d "$r"/data.iago-partial.* 2>/dev/null | head -1)" -a -n "$(grep data.iago-partial <<< "$err")"
 # --- end sections ---
 echo
 echo "passed=$pass failed=$fail"

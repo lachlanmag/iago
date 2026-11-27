@@ -7,6 +7,8 @@
 #   bash scripts/link-data.sh --dry-run <folder>  # preview, change nothing
 #   bash scripts/link-data.sh <folder>            # move/link data/ to <folder>
 #   bash scripts/link-data.sh --force <folder>    # on conflict: back up local data/, then link
+#   bash scripts/link-data.sh --unlink [--dry-run] # copy the linked folder back into data/
+#                                                 # and forget it (the folder itself is kept)
 #
 # Output: stable key=value lines (parsed by the iago-data-location skill).
 # Exit: 0 ok, 1 error, 2 conflict, 3 refused (inside/contains repo),
@@ -20,7 +22,7 @@ DATA="$REPO_ROOT/data"
 source "$REPO_ROOT/scripts/lib/data-dir.sh"
 
 usage() {
-  sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+  awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
 }
 
 # Expand ~ and relative paths. Existing directories are resolved physically
@@ -388,13 +390,124 @@ cmd_apply() {
   echo "result=ok"
 }
 
+# Put the data link back after a failed --unlink (data/ was removed or
+# replaced). Moves our copy back to the staging path first.
+unlink_restore() {
+  local target="$1" staging="$2" nested
+  nested="$DATA/$(basename "$staging")"
+  if [[ ! -L "$DATA" && -d "$nested" && ! -e "$staging" ]]; then
+    mv "$nested" "$staging" && rmdir "$DATA" 2>/dev/null
+  elif [[ ! -L "$DATA" && -d "$DATA" && ! -e "$staging" ]]; then
+    mv "$DATA" "$staging"
+  fi
+  [[ -e "$DATA" || -L "$DATA" ]] || ln -s "$target" "$DATA"
+}
+
+unlink_fail() {
+  echo "error: $1; the data link and configured folder were left in place." >&2
+  [[ -n "${2:-}" && -e "$2" ]] && echo "  Partial copy kept at $(tilde "$2") (safe to delete)." >&2
+  if [[ ! -L "$DATA" ]]; then
+    echo "  warning: could not restore the data link; run: bash scripts/link-data.sh \"$3\"" >&2
+  fi
+  return 1
+}
+
+# Copy the linked folder back into an in-repo data/ and forget the configured
+# folder. The external folder is only read, never changed.
+cmd_unlink() {
+  local dry="$1" conf mode physical target src staging before new_dangling
+  conf="$(iago_configured_dir "$REPO_ROOT")"
+  mode="$(iago_data_mode "$REPO_ROOT" "$conf")"
+  physical="$(data_mode)"
+  case "$physical" in
+    other)
+      echo "mode=other"
+      echo "error: $(iago_data_hint other "$REPO_ROOT")" >&2
+      return 1 ;;
+    broken)
+      echo "action=unlink"
+      echo "mode=broken"
+      echo "target=$(tilde "$(readlink "$DATA")")"
+      echo "error: data -> $(tilde "$(readlink "$DATA")") does not exist, so there is nothing to copy back. Reconnect/mount that folder first, then re-run." >&2
+      return 4 ;;
+    missing)
+      echo "action=noop"
+      echo "mode=$mode"
+      echo "target="
+      [[ "$dry" == true ]] && return 0
+      [[ -n "$conf" ]] && iago_unset_configured "$REPO_ROOT"
+      echo "hint=No data folder yet. To start one inside the repo, run: bash scripts/init-data.sh --keep-in-repo" >&2
+      echo "result=ok"
+      return 0 ;;
+    in-repo)
+      if [[ -z "$conf" ]]; then
+        echo "action=noop"
+      else
+        echo "action=adopt"
+      fi
+      echo "mode=$mode"
+      echo "target=$(tilde "$DATA")"
+      echo "files=$(count_files "$DATA")"
+      echo "kb=$(kb_of "$DATA")"
+      [[ "$dry" == true ]] && return 0
+      if [[ -n "$conf" ]]; then
+        iago_unset_configured "$REPO_ROOT"
+        echo "Keeping the data inside the repo. $(tilde "$conf") was not modified or deleted." >&2
+      fi
+      echo "result=ok"
+      return 0 ;;
+  esac
+
+  # linked
+  target="$(readlink "$DATA")"
+  src="$(cd -P "$DATA" 2>/dev/null && pwd -P)" || { echo "error: cannot open $(tilde "$target")" >&2; return 1; }
+  echo "action=unlink"
+  echo "mode=$mode"
+  echo "target=$(tilde "$target")"
+  echo "files=$(count_files "$src")"
+  echo "kb=$(kb_of "$src")"
+  [[ "$dry" == true ]] && return 0
+
+  staging="$DATA.iago-partial.$$"
+  mkdir "$staging" || { unlink_fail "could not create $(tilde "$staging")" "" "$target"; return 1; }
+  before="$(count_files "$src")"
+  if ! cp -Rp "$src/." "$staging/"; then
+    unlink_fail "copy failed" "$staging" "$target"; return 1
+  fi
+  if ! same_tree "$src" "$staging"; then
+    unlink_fail "copy verification failed (contents differ)" "$staging" "$target"; return 1
+  fi
+  if [[ "$(count_files "$staging")" != "$before" ]]; then
+    unlink_fail "copy verification failed (file count differs)" "$staging" "$target"; return 1
+  fi
+  # The staging folder sits next to data/, so relative links resolve as they will there.
+  new_dangling="$(comm -13 <(dangling_links "$src") <(dangling_links "$staging"))"
+  if [[ -n "$new_dangling" ]]; then
+    echo "  Relative links that would break: $(echo "$new_dangling" | sed 's#^\./##' | tr '\n' ' ')" >&2
+    unlink_fail "symlinks in the data folder would break inside the repo" "$staging" "$target"; return 1
+  fi
+  if [[ ! -L "$DATA" || "$(readlink "$DATA")" != "$target" ]]; then
+    unlink_fail "data/ changed during the copy" "$staging" "$target"; return 1
+  fi
+  rm "$DATA" || { unlink_fail "could not remove the data link" "$staging" "$target"; return 1; }
+  if ! mv "$staging" "$DATA" || [[ -L "$DATA" || ! -d "$DATA" || -e "$DATA/$(basename "$staging")" ]] \
+     || ! same_tree "$src" "$DATA" || [[ "$(count_files "$DATA")" != "$before" ]]; then
+    unlink_restore "$target" "$staging"
+    unlink_fail "could not verify the copy in data/" "$staging" "$target"; return 1
+  fi
+  iago_unset_configured "$REPO_ROOT"
+  echo "Your data is now inside the repo. $(tilde "$target") was not modified or deleted (other computers may still use it)." >&2
+  echo "result=ok"
+}
+
 main() {
-  local dry=false force=false status=false target=""
+  local dry=false force=false status=false unlink=false target=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --status) status=true; shift ;;
       --dry-run) dry=true; shift ;;
       --force) force=true; shift ;;
+      --unlink) unlink=true; shift ;;
       -h|--help) usage; return 0 ;;
       -*) echo "error: unknown option: $1" >&2; usage >&2; return 1 ;;
       *)
@@ -404,6 +517,14 @@ main() {
   done
 
   if [[ "$status" == true ]]; then cmd_status; return; fi
+  if [[ "$unlink" == true ]]; then
+    if [[ -n "$target" || "$force" == true ]]; then
+      echo "error: --unlink takes no folder and no --force" >&2
+      return 1
+    fi
+    cmd_unlink "$dry"
+    return
+  fi
   if [[ -z "$target" ]]; then usage >&2; return 1; fi
   if [[ "$target" == *$'\n'* ]]; then
     echo "error: folder paths containing a newline are not supported" >&2

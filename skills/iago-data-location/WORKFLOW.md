@@ -5,6 +5,7 @@
 - User asks where their Iago data is stored
 - User wants to move data out of the repo, change the data folder, or use Iago on several computers ("set up sync", "use my Nextcloud/Google Drive folder")
 - A script or skill reports that `data` points at a folder that does not exist
+- User wants their data back inside the repo (stop using an external folder on this computer)
 - User runs `/iago-data-location`
 - Called from `iago-setup` step 0b (choose data folder)
 
@@ -16,7 +17,7 @@
 
 | File | Purpose |
 |------|---------|
-| `$REPO_ROOT/scripts/link-data.sh` | Status, dry-run, and link/move (only tool that changes the data location) |
+| `$REPO_ROOT/scripts/link-data.sh` | Status, dry-run, link/move, and `--unlink` (move back into the repo); the only tool that changes the data location |
 | `$REPO_ROOT/data` | Real folder (in-repo) or per-machine symlink to the chosen folder; gitignored either way |
 | git config `iago.dataDir` (local to this clone) | The folder this computer uses, recorded by `link-data.sh`; lets scripts notice when a git checkout removed the `data` link |
 
@@ -29,6 +30,8 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 | `bash "$REPO_ROOT/scripts/link-data.sh" --status` | `mode` (`missing`, `in-repo`, `linked`, `broken`, `unlinked`, `other`), `repo`, `configured` (folder this computer is set to use, `~` form; empty if never linked), `target`, `files`, `kb`, and one `leftover=` line per old copy kept after a move |
 | `bash "$REPO_ROOT/scripts/link-data.sh" --dry-run "<folder>"` | `action`, `mode`, `target`, `local_files`, `local_kb`, `target_files`, `target_kb` |
 | `bash "$REPO_ROOT/scripts/link-data.sh" "<folder>"` | Same as dry-run, plus `result=ok` (and `backup=` when `--force` was used; `leftover=` when a move could not fully delete the old in-repo copy). Records `<folder>` as this computer's configured folder. |
+| `bash "$REPO_ROOT/scripts/link-data.sh" --unlink --dry-run` | `action` (`unlink`, `adopt`, or `noop`), `mode`, `target` (the folder that would be copied back, or `data/` for `adopt`), `files`, `kb`. Changes nothing. |
+| `bash "$REPO_ROOT/scripts/link-data.sh" --unlink` | Same as its dry-run, plus `result=ok`. Copies the linked folder into the repo's `data/`, verifies it, replaces the link, and forgets the configured folder. The external folder is never modified or deleted. |
 | `--dry-run` or apply, when `data` is a file (`mode=other`) | Only `mode=other`; exits 1 without changing anything. (`--status` prints all its keys and also exits 1.) |
 
 | Exit | Meaning |
@@ -48,6 +51,8 @@ All output is `key=value` lines on stdout; hints and errors on stderr.
 | `noop` | "Already using `<folder>`." |
 | `missing-target` | Exit 4, nothing changed: `data` already points at `<folder>`, but that folder still does not exist. "`<folder>` still can't be found: reconnect or mount it (sync drive, network share), or choose a different folder." Never create it without asking. |
 | `conflict` | See Conflict below. |
+| `unlink` | (`--unlink`) "Copy your N files (X MB) from `<target>` back into the repo's `data/` and stop using `<target>` on this computer. `<target>` itself is not changed or deleted (other computers may still use it)." |
+| `adopt` | (`--unlink`) "Keep the data that is already in the repo's `data/` (N files) and stop using `<configured>` on this computer. Nothing is copied; `<configured>` is not changed." |
 | `refuse` | "That folder is inside the Iago repo, or contains it; pick a separate folder outside it." |
 
 ## Workflow
@@ -66,7 +71,7 @@ Run `--status` and say, in one line:
 | `in-repo` | "Your data is inside the Iago repo (`data/`, gitignored), N files." |
 | `linked` | "Your data is in `<target>`, N files." |
 | `broken` | "Iago is set to use `<target>`, but that folder can't be found (sync drive not mounted, or folder moved/renamed)." |
-| `unlinked` | "This computer is set to use `<configured>`, but Iago's `data` link to it is gone (usually after switching to an old Iago version with git)." Offer **Re-link to `<configured>`** (run `link-data.sh "<configured>"` after a dry-run) or **Pick another folder**. Iago scripts stop until this is fixed. |
+| `unlinked` | "This computer is set to use `<configured>`, but Iago's `data` link to it is gone (usually after switching to an old Iago version with git)." Offer **Re-link to `<configured>`** (run `link-data.sh "<configured>"` after a dry-run), **Pick another folder**, or **Keep the in-repo data** (`link-data.sh --unlink`, action `adopt`; only when `data/` is a real folder with files). Iago scripts stop until this is fixed. |
 | `other` | "There is a file called `data` in the Iago repo where the data folder should be." Ask the user to rename or move it; change nothing. |
 
 If the user only asked where the data is, stop here.
@@ -80,6 +85,7 @@ Present choices:
 | **Pick a folder** (recommended) | macOS: `osascript -e 'POSIX path of (choose folder with prompt "Choose where Iago should keep your job search data")'`. Linux: `zenity --file-selection --directory --title="Iago data folder"` if `command -v zenity` succeeds. If the picker is unavailable or cancelled, fall back to **Type a path**. |
 | **Type a path** | Accept `~/…`, relative, or absolute; the script expands it. |
 | **Keep in repo** | Only offered when `mode` is `missing`: run `bash "$REPO_ROOT/scripts/init-data.sh" --keep-in-repo` (or return the choice to `iago-setup`). |
+| **Move back into the repo** | Only offered when `mode` is `linked` or `unlinked`. Run `link-data.sh --unlink --dry-run`, describe the `action` (`unlink` or `adopt`) and ask **Go ahead?**; on yes run `link-data.sh --unlink`, then `--status`. Say the external folder was left untouched and can be removed by the user once no other computer uses it. Skip steps 4–5. |
 | **Cancel** | Stop without changes. |
 
 Tip to offer: choose (or create) a folder **inside** what your sync tool already syncs, e.g. `~/Nextcloud/iago-data`. Never choose a folder inside the Iago repo.
